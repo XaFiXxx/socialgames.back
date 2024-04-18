@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\GameController;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,3 +27,5 @@ Route::post('/login', [AuthController::class, 'login']);
 
 
 Route::post('/dashboard/login', [AuthController::class, 'dashboardLogin']);
+
+Route::get('/games/index', [GameController::class, 'index']);
