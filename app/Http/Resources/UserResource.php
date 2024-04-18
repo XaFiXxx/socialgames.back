@@ -21,9 +21,10 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'avatar_url' => $this->avatar_url,
             'email_verified_at' => $this->email_verified_at,
+            'biography' => $this->biography,
+            'location' => $this->location,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            // Exclure 'is_admin' de la réponse
         ];
     }
 }

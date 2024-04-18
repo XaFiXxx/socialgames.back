@@ -21,7 +21,10 @@ class User extends Authenticatable
         'username',
         'email',
         'password',
-        'avatar_url'
+        'avatar_url',
+        'biography',
+        'location',
+        'is_admin',
     ];
 
     /**
@@ -43,4 +46,36 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    // Jeux avec reviews et wishlist
+    public function gameReviews()
+    {
+        return $this->hasMany(GameReview::class);
+    }
+
+    // Jeux directement, en utilisant la relation à travers game_reviews
+    public function games()
+    {
+        return $this->belongsToMany(Game::class, 'game_reviews')
+                    ->withPivot('is_wishlist')
+                    ->withTimestamps();
+    }
+
+    // Posts de l'utilisateur
+    public function posts()
+    {
+        return $this->hasMany(Post::class);
+    }
+
+    // Amis - supposant que la table friends relie les utilisateurs à d'autres utilisateurs
+    public function friends()
+    {
+        return $this->belongsToMany(User::class, 'friends', 'user_id', 'friend_id');
+    }
+
+    // Plateformes via game_platform
+    public function platforms()
+    {
+        return $this->belongsToMany(Platform::class, 'user_platform');
+    }
 }

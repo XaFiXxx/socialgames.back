@@ -22,10 +22,22 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+/* ------------------ ROUTES FOR LOGIN / REGISTER ------------------ */
+
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 
-Route::post('/dashboard/login', [AuthController::class, 'dashboardLogin']);
+
+/* ------------------- ROUTES FOR GAMES ------------------- */
 
 Route::get('/games/index', [GameController::class, 'index']);
+
+/* ------------------- ROUTES FOR USERS ------------------- */
+
+Route::get('/users/{id}/profile', [UserController::class, 'userProfile']);
+
+
+/* ------------------- ROUTES FOR DASHBOARD ------------------- */
+
+Route::post('/dashboard/login', [AuthController::class, 'dashboardLogin']);
