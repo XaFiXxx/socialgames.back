@@ -25,4 +25,4 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 
-
+Route::post('/dashboard/login', [AuthController::class, 'dashboardLogin']);
