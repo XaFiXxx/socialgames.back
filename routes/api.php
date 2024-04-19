@@ -18,24 +18,21 @@ use App\Http\Controllers\GameController;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+// Protéger toutes les routes API nécessitant une authentification
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+    Route::get('/games/index', [GameController::class, 'index']);
+    Route::get('/users/{id}/profile', [UserController::class, 'userProfile']);
+    // Autres routes protégées
 });
+
 
 /* ------------------ ROUTES FOR LOGIN / REGISTER ------------------ */
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
-
-
-
-/* ------------------- ROUTES FOR GAMES ------------------- */
-
-Route::get('/games/index', [GameController::class, 'index']);
-
-/* ------------------- ROUTES FOR USERS ------------------- */
-
-Route::get('/users/{id}/profile', [UserController::class, 'userProfile']);
 
 
 /* ------------------- ROUTES FOR DASHBOARD ------------------- */
