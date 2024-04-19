@@ -13,30 +13,50 @@ use App\Http\Resources\UserResource;
 class AuthController extends Controller
 {
     public function register(Request $request)
-    {
-        // Valider les données reçues
-        $validator = Validator::make($request->all(), [
-            'username' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6',
-        ]);
+{
+    // Validation des données entrantes
+    $validator = Validator::make($request->all(), [
+        'username' => 'required|string|max:255',
+        'email' => 'required|string|email|max:255|unique:users',
+        'password' => 'required|string|min:6',
+        'location' => 'sometimes|string|max:255',
+        'avatar' => 'sometimes|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 400);
-        }
-
-        // Créer un nouvel utilisateur
-        $user = User::create([
-            'username' => $request->username,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'avatar_url' => $request->avatar_url,
-        ]);
-
-        // Tu peux ajouter ici la logique pour l'envoi d'email de confirmation, etc.
-
-        return response()->json(['message' => 'Utilisateur créé avec succès', 'user' => $user]);
+    // Retourne une réponse JSON en cas d'échec de la validation
+    if ($validator->fails()) {
+        return response()->json($validator->errors(), 400);
     }
+
+    // Traitement de l'upload de l'avatar
+    $avatarPath = null;
+    if ($request->hasFile('avatar')) {
+        // Stocke l'image dans le dossier spécifié et récupère le chemin relatif
+        $avatarPath = $request->file('avatar')->store('img', 'public');
+
+        // Construit l'URL accessible pour l'image
+        // Note: Assure-toi que tu as configuré un lien symbolique comme expliqué précédemment
+        $avatarUrl = 'storage/' . $avatarPath;
+    } else {
+        // Optionnel : définit une URL par défaut ou laisse null si pas d'avatar uploadé
+        $avatarUrl = null; 
+    }
+
+    // Création de l'utilisateur en base de données
+    $user = User::create([
+        'username' => $request->username,
+        'email' => $request->email,
+        'password' => Hash::make($request->password),
+        'avatar_url' => $avatarUrl, // Sauvegarde l'URL publique de l'avatar
+        'location' => $request->location,
+    ]);
+
+    // Retourne une réponse JSON indiquant le succès de l'opération
+    return response()->json(['message' => 'Utilisateur créé avec succès', 'user' => $user]);
+}
+
+
+
 
     public function login(Request $request)
     {

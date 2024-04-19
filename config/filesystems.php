@@ -38,10 +38,9 @@ return [
 
         'public' => [
             'driver' => 'local',
-            'root' => storage_path('app/public'),
-            'url' => env('APP_URL').'/storage',
+            'root' => storage_path('app/public'), // Chemin général pour le stockage public
+            'url' => env('APP_URL').'/storage', // URL accessible depuis le web
             'visibility' => 'public',
-            'throw' => false,
         ],
 
         's3' => [

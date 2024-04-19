@@ -14,11 +14,6 @@ return new class extends Migration
         // Supprimer la table profiles
         Schema::dropIfExists('profiles');
 
-        // Ajouter les colonnes à la table users
-        Schema::table('users', function (Blueprint $table) {
-            $table->text('biography')->nullable()->after('password');
-            $table->string('location')->nullable()->after('biography');
-        });
     }
 
     /**
@@ -34,9 +29,5 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Supprimer les colonnes ajoutées à la table users
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['biography', 'location']);
-        });
     }
 };

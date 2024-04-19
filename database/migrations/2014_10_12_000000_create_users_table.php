@@ -15,9 +15,12 @@ return new class extends Migration
             $table->id();
             $table->string('username');
             $table->string('email')->unique();
-            $table->string('avatar_url')->nullable();
-            $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('avatar_url')->nullable()->default('storage/img/defaultUser.webp'); // Chemin par défaut si nécessaire
+            $table->text('biography')->nullable();
+            $table->string('location')->nullable();
+            $table->tinyInteger('is_admin')->default(0); // Présume que '0' signifie non-admin
+            $table->timestamp('email_verified_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
