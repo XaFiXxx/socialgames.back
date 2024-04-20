@@ -21,7 +21,9 @@ class User extends Authenticatable
         'username',
         'email',
         'password',
+        'birthday',
         'avatar_url',
+        'cover_url',
         'biography',
         'location',
         'is_admin',
@@ -57,7 +59,7 @@ class User extends Authenticatable
     public function games()
     {
         return $this->belongsToMany(Game::class, 'game_reviews')
-                    ->withPivot('is_wishlist')
+                    ->withPivot('review', 'rating', 'is_wishlist')
                     ->withTimestamps();
     }
 

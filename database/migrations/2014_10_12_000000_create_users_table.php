@@ -16,7 +16,9 @@ return new class extends Migration
             $table->string('username');
             $table->string('email')->unique();
             $table->string('password');
-            $table->string('avatar_url')->nullable()->default('storage/img/defaultUser.webp'); // Chemin par défaut si nécessaire
+            $table->date('birthday');
+            $table->string('avatar_url')->nullable()->default('storage/img/defaultUser.webp');
+            $table->string('cover_url')->nullable()->default('storage/img/defaultCover.webp');
             $table->text('biography')->nullable();
             $table->string('location')->nullable();
             $table->tinyInteger('is_admin')->default(0); // Présume que '0' signifie non-admin

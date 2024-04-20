@@ -9,6 +9,8 @@ class GameReview extends Model
 {
     use HasFactory;
 
+    protected $fillable = ['game_id', 'user_id', 'is_wishlist', 'rating', 'review'];
+
     public function user()
     {
         return $this->belongsTo(User::class);

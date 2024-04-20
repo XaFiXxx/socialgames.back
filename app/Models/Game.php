@@ -13,6 +13,19 @@ class Game extends Model
 
     public function users()
     {
-        return $this->belongsToMany(User::class);
+        // Ici, je suppose que game_reviews contient une clé étrangère 'user_id' et 'game_id'
+        return $this->belongsToMany(User::class, 'game_reviews')
+                    ->withPivot('review', 'rating', 'is_wishlist') // Assure-toi que ces colonnes existent dans ta table game_reviews
+                    ->withTimestamps();
+    }
+
+    public function genres()
+    {
+        return $this->belongsToMany(Genre::class, 'game_genre');
+    }
+
+    public function platforms()
+    {
+        return $this->belongsToMany(Platform::class, 'game_platform');
     }
 }

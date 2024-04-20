@@ -15,4 +15,9 @@ class Platform extends Model
     {
         return $this->belongsToMany(User::class, 'game_platform');
     }
+
+    public function games()
+    {
+        return $this->belongsToMany(Game::class, 'game_platform');
+    }
 }

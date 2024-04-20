@@ -20,6 +20,7 @@ class AuthController extends Controller
         'email' => 'required|string|email|max:255|unique:users',
         'password' => 'required|string|min:6',
         'location' => 'sometimes|string|max:255',
+        'birthday' => 'sometimes|date',
         'avatar' => 'sometimes|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
     ]);
 
@@ -47,6 +48,7 @@ class AuthController extends Controller
         'username' => $request->username,
         'email' => $request->email,
         'password' => Hash::make($request->password),
+        'birthday' => $request->birthday,
         'avatar_url' => $avatarUrl, // Sauvegarde l'URL publique de l'avatar
         'location' => $request->location,
     ]);

@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('game_id')->constrained()->onDelete('cascade');
-            $table->text('review'); // Le texte de l'avis
-            $table->unsignedTinyInteger('rating'); // La note attribuée, par exemple sur 5
+            $table->text('review')->nullable(); // Le texte de l'avis
+            $table->unsignedTinyInteger('rating')->nullable(); // La note attribuée, par exemple sur 5
             $table->timestamps(); // Date et heure de création et mise à jour de l'avis
         });
     }
