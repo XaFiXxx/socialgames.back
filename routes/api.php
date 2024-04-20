@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\GameController;
+use App\Http\Controllers\PostController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,6 +37,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // ------------------- ROUTES FOR GAMES ------------------- //
     Route::get('/games/index', [GameController::class, 'index']);
     Route::post('/games/{game}/follow', [GameController::class, 'toggleFollow']);
+
+
+    // ------------------- ROUTES FOR POSTS ------------------- //
+    Route::post('/create/post', [PostController::class, 'createUserPost']);
 });
 
 
