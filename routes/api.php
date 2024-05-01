@@ -7,6 +7,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\PlateformController;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,6 +34,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ------------------- ROUTES FOR USERS ------------------- //
     Route::get('/users/{id}/profile', [UserController::class, 'userProfile']);
+    Route::get('/user/platforms', [UserController::class, 'userPlatforms']);
+    Route::post('/user/update/platforms', [UserController::class, 'updatePlatforms']);
 
     // ------------------- ROUTES FOR GAMES ------------------- //
     Route::get('/games/index', [GameController::class, 'index']);
@@ -41,6 +44,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ------------------- ROUTES FOR POSTS ------------------- //
     Route::post('/create/post', [PostController::class, 'createUserPost']);
+
+    // ------------------- ROUTES FOR PLATEFORMS ------------------- //
+    Route::get('/platforms', [PlateformController::class, 'index']);
 });
 
 
