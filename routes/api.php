@@ -8,6 +8,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\PlateformController;
+use App\Http\Controllers\HomeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,7 +31,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
-   
+
+    // ------------------- ROUTES FOR HOME ------------------- //
+    Route::get('/home', [HomeController::class, 'home']);
 
     // ------------------- ROUTES FOR USERS ------------------- //
     Route::get('/users/{id}/profile', [UserController::class, 'userProfile']);
