@@ -45,6 +45,21 @@ class UserController extends Controller
 
         return response()->json(['message' => 'Plateformes mises à jour avec succès.']);
     }
+
+    public function showUserById($id)
+    {
+        try {
+            $user = User::with(['games', 'friends', 'platforms', 'posts' => function($query) {
+                $query->orderBy('created_at', 'desc');
+            }])->findOrFail($id);
+
+            // Masquer la colonne is_admin dans la réponse JSON
+            return $user->makeHidden('is_admin');
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+    }
+
     
 
 }

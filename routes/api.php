@@ -9,6 +9,7 @@ use App\Http\Controllers\GameController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\PlateformController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\SearchController;
 
 /*
 |--------------------------------------------------------------------------
@@ -50,6 +51,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ------------------- ROUTES FOR PLATEFORMS ------------------- //
     Route::get('/platforms', [PlateformController::class, 'index']);
+
+    // ------------------- ROUTES FOR SEARCH ------------------- //
+    Route::get('/search/{username}', [SearchController::class, 'search']);
+    Route::get('/profil/{id}/{username}', [UserController::class, 'showUserById']);
 });
 
 
