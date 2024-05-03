@@ -49,7 +49,7 @@ class UserController extends Controller
     public function showUserById($id)
     {
         try {
-            $user = User::with(['games', 'friends', 'platforms', 'posts' => function($query) {
+            $user = User::with(['games', 'friends', 'platforms', 'following', 'posts' => function($query) {
                 $query->orderBy('created_at', 'desc');
             }])->findOrFail($id);
 
@@ -59,6 +59,24 @@ class UserController extends Controller
             return response()->json(['error' => 'User not found'], 404);
         }
     }
+
+    public function toggleFollowUser(Request $request, $id) {
+        $user = User::find($id);
+        $me = auth()->user();
+    
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+    
+        if ($me->following()->where('followed_id', $user->id)->exists()) {
+            $me->following()->detach($user);
+            return response()->json(['message' => 'User unfollowed']);
+        } else {
+            $me->following()->attach($user);
+            return response()->json(['message' => 'User followed']);
+        }
+    }
+    
 
     
 

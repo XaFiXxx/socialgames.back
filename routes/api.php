@@ -40,6 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/users/{id}/profile', [UserController::class, 'userProfile']);
     Route::get('/user/platforms', [UserController::class, 'userPlatforms']);
     Route::post('/user/update/platforms', [UserController::class, 'updatePlatforms']);
+    Route::post('/user/follow/{id}', [UserController::class, 'toggleFollowUser']);
 
     // ------------------- ROUTES FOR GAMES ------------------- //
     Route::get('/games/index', [GameController::class, 'index']);
