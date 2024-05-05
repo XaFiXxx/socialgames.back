@@ -5,6 +5,7 @@ use App\Http\Resources\UserResource;
 
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Models\Follow;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
@@ -59,6 +60,68 @@ class UserController extends Controller
             return response()->json(['error' => 'User not found'], 404);
         }
     }
+
+//     public function showUserById($id)
+//     {
+//         $currentUserId = auth()->user()->id; // Correction des parenthèses
+//         \Log::info('Current User ID: ' . $currentUserId);
+    
+//         try {
+//             $user = User::with([
+//                 'games', 
+//                 'friends', 
+//                 'platforms', 
+//                 'posts' => function($query) {
+//                     $query->orderBy('created_at', 'desc');
+//                 },
+//                 'followers'
+//             ])->findOrFail($id);
+    
+//             $isFollowing = Follow::where('follower_id', $currentUserId)
+//                      ->where('followed_id', $id)
+//                      ->exists();
+    
+//             $userData = $user->toArray();
+//             $userData['isFollowing'] = $isFollowing; // Assurez-vous que cette ligne est correcte
+    
+//             return response()->json($userData)->makeHidden(['is_admin']); // Utilisez un tableau pour makeHidden
+//         } catch (\Exception $e) {
+//             \Log::error("Failed to find user: " . $e->getMessage());
+//             return response()->json(['error' => 'User not found'], 404);
+//         }
+//     }
+
+//     public function showUserById(Request $request, $id)
+// {
+//     $currentUserId = $request->header('X-User-Id'); // Récupérer l'ID utilisateur depuis les en-têtes de la requête
+//     \Log::info('Current User ID from Header: ' . $currentUserId);
+
+//     try {
+//         $user = User::with([
+//             'games', 
+//             'friends', 
+//             'platforms', 
+//             'posts' => function($query) {
+//                 $query->orderBy('created_at', 'desc');
+//             },
+//             'followers' => function($query) {
+//                 $query->where('follower_id', $currentUserId);
+//             }
+//         ])->findOrFail($id);
+
+//         $isFollowing = Follow::where('follower_id', $currentUserId)
+//                  ->where('followed_id', $id)
+//                  ->exists();
+
+//         $userData = $user->toArray();
+//         $userData['isFollowing'] = $isFollowing;
+
+//         return response()->json($userData)->makeHidden(['is_admin']);
+//     } catch (\Exception $e) {
+//         \Log::error("Failed to find user: " . $e->getMessage());
+//         return response()->json(['error' => 'User not found'], 404);
+//     }
+// }
 
     public function toggleFollowUser(Request $request, $id) {
         $user = User::find($id);
