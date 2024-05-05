@@ -16,5 +16,21 @@ class SearchController extends Controller
 
         return response()->json(['users' => $users, 'games' => $games]);
     }
-    
+
+    public function getSuggestions(Request $request)
+    {
+        $query = $request->query('query');
+        if (!$query) {
+            return response()->json([], 200);
+        }
+
+        try {
+            $users = User::where('username', 'like', '%' . $query . '%')->limit(5)->get(['id', 'username']);
+            $games = Game::where('name', 'like', '%' . $query . '%')->limit(5)->get(['id', 'name']);
+
+            return response()->json(['users' => $users, 'games' => $games]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
 }
