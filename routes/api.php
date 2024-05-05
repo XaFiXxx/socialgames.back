@@ -54,7 +54,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/platforms', [PlateformController::class, 'index']);
 
     // ------------------- ROUTES FOR SEARCH ------------------- //
-    Route::get('/search/{username}', [SearchController::class, 'search']);
+    Route::get('/search', [SearchController::class, 'searchAll']);
     Route::get('/profil/{id}/{username}', [UserController::class, 'showUserById']);
 });
 

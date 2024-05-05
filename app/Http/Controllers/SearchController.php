@@ -4,15 +4,17 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User; 
+use App\Models\Game;
 
 class SearchController extends Controller
 {
-    public function search(Request $request)
+    public function searchAll(Request $request)
     {
-        $query = $request->query('username'); // Récupère la chaîne de recherche de l'URL
+        $query = $request->query('query');
+        $users = User::where('username', 'LIKE', "%{$query}%")->get();
+        $games = Game::where('name', 'LIKE', "%{$query}%")->get();
 
-        $users = User::where('username', 'LIKE', '%' . $query . '%')->get();
-
-        return response()->json($users);
+        return response()->json(['users' => $users, 'games' => $games]);
     }
+    
 }
