@@ -18,6 +18,17 @@ class GameController extends Controller
         return response()->json($games);
     }
 
+    public function show($id)
+    {
+        $game = Game::with(['genres', 'platforms', 'users'])->find($id); // Adapte les relations selon ton modèle
+
+        if (!$game) {
+            return response()->json(['message' => 'Game not found'], 404);
+        }
+
+        return response()->json($game);
+    }
+
     /**
      * Permet à un utilisateur de suivre ou de se désabonner d'un jeu.
      */

@@ -57,6 +57,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/search', [SearchController::class, 'searchAll']);
     Route::get('/search/suggestions', [SearchController::class, 'getSuggestions']);
     Route::get('/profil/{id}/{username}', [UserController::class, 'showUserById']);
+    Route::get('/game/{id}/{name}', [GameController::class, 'show']);
 });
 
 
