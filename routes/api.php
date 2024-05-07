@@ -10,6 +10,7 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\PlateformController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\GroupController;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,6 +47,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/games/index', [GameController::class, 'index']);
     Route::post('/games/{game}/follow', [GameController::class, 'toggleFollow']);
 
+    // ------------------- ROUTES FOR GROUPS ------------------- //
+    Route::get('/groups', [GroupController::class, 'index']);
+    Route::get('/group/{id}', [GroupController::class, 'show']);
 
     // ------------------- ROUTES FOR POSTS ------------------- //
     Route::post('/create/post', [PostController::class, 'createUserPost']);
