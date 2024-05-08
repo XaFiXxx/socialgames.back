@@ -50,6 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // ------------------- ROUTES FOR GROUPS ------------------- //
     Route::get('/groups', [GroupController::class, 'index']);
     Route::get('/group/{id}', [GroupController::class, 'show']);
+    Route::post('/group/{id}/follow', [GroupController::class, 'followGroup']);
 
     // ------------------- ROUTES FOR POSTS ------------------- //
     Route::post('/create/post', [PostController::class, 'createUserPost']);
