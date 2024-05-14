@@ -16,6 +16,9 @@ class Group extends Model
         'name',
         'description',
         'game_id',
+        'group_image',
+        'is_active',
+        'privacy',
         'created_by'
     ];
 
