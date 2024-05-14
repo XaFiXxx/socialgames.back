@@ -54,6 +54,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ------------------- ROUTES FOR POSTS ------------------- //
     Route::post('/create/post', [PostController::class, 'createUserPost']);
+    Route::post('/create/groupPost', [PostController::class, 'createGroupPost']);
 
     // ------------------- ROUTES FOR PLATEFORMS ------------------- //
     Route::get('/platforms', [PlateformController::class, 'index']);
