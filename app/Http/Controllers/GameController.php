@@ -33,33 +33,40 @@ class GameController extends Controller
      * Permet à un utilisateur de suivre ou de se désabonner d'un jeu.
      */
     public function toggleFollow(Request $request, Game $game)
-    {
-        $user = Auth::user();
-        $isFollowed = $request->input('isFollowed');
+{
+    $user = Auth::user();
+    $isFollowed = $request->input('isFollowed');
 
-        // Vérifier si l'utilisateur suit déjà le jeu
-        $review = GameReview::where('game_id', $game->id)
-                             ->where('user_id', $user->id)
-                             ->first();
+    // Vérifier si l'utilisateur suit déjà le jeu
+    $review = GameReview::where('game_id', $game->id)
+                         ->where('user_id', $user->id)
+                         ->first();
 
-        if ($review) {
-            if (!$isFollowed) {
-                // Si l'utilisateur veut se désabonner
-                $review->delete();
-                return response()->json(['message' => 'Vous avez arrêté de suivre ce jeu.']);
-            }
+    if ($review) {
+        if (!$isFollowed) {
+            // Si l'utilisateur veut se désabonner, mettre à jour uniquement le champ is_whitelist
+            $review->is_wishlist = false;
+            $review->save();
+            return response()->json(['message' => 'Vous avez arrêté de suivre ce jeu.']);
         } else {
-            if ($isFollowed) {
-                // Si l'utilisateur veut suivre le jeu
-                GameReview::create([
-                    'game_id' => $game->id,
-                    'user_id' => $user->id,
-                    'is_wishlist' => true
-                ]);
-                return response()->json(['message' => 'Jeu suivi avec succès.']);
-            }
+            // Si l'utilisateur veut suivre le jeu, mettre à jour le champ is_whitelist
+            $review->is_wishlist = true;
+            $review->save();
+            return response()->json(['message' => 'Jeu suivi avec succès.']);
         }
-
-        return response()->json(['error' => 'Action non valide.'], 400);
+    } else {
+        if ($isFollowed) {
+            // Si l'utilisateur veut suivre le jeu et qu'il n'y a pas encore de revue, créer une nouvelle entrée
+            GameReview::create([
+                'game_id' => $game->id,
+                'user_id' => $user->id,
+                'is_wishlist' => true
+            ]);
+            return response()->json(['message' => 'Jeu suivi avec succès.']);
+        }
     }
+
+    return response()->json(['error' => 'Action non valide.'], 400);
+}
+
 }
