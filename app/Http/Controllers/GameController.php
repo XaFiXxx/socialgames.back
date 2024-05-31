@@ -20,14 +20,15 @@ class GameController extends Controller
 
     public function show($id)
     {
-        $game = Game::with(['genres', 'platforms', 'users'])->find($id); // Adapte les relations selon ton modèle
-
+        $game = Game::with(['genres', 'platforms', 'users', 'reviews.user'])->find($id); // Inclure les utilisateurs dans les critiques
+    
         if (!$game) {
             return response()->json(['message' => 'Game not found'], 404);
         }
-
+    
         return response()->json($game);
     }
+    
 
     /**
      * Permet à un utilisateur de suivre ou de se désabonner d'un jeu.
@@ -39,17 +40,24 @@ class GameController extends Controller
 
     // Vérifier si l'utilisateur suit déjà le jeu
     $review = GameReview::where('game_id', $game->id)
-                         ->where('user_id', $user->id)
-                         ->first();
+                        ->where('user_id', $user->id)
+                        ->first();
 
     if ($review) {
         if (!$isFollowed) {
-            // Si l'utilisateur veut se désabonner, mettre à jour uniquement le champ is_whitelist
-            $review->is_wishlist = false;
-            $review->save();
-            return response()->json(['message' => 'Vous avez arrêté de suivre ce jeu.']);
+            // Si l'utilisateur veut se désabonner
+            if ($review->rating === null && $review->review === null) {
+                // Supprimer l'enregistrement si rating et review sont nulles
+                $review->delete();
+                return response()->json(['message' => 'Vous avez arrêté de suivre ce jeu et la revue a été supprimée.']);
+            } else {
+                // Mettre à jour uniquement le champ is_wishlist
+                $review->is_wishlist = false;
+                $review->save();
+                return response()->json(['message' => 'Vous avez arrêté de suivre ce jeu.']);
+            }
         } else {
-            // Si l'utilisateur veut suivre le jeu, mettre à jour le champ is_whitelist
+            // Si l'utilisateur veut suivre le jeu, mettre à jour le champ is_wishlist
             $review->is_wishlist = true;
             $review->save();
             return response()->json(['message' => 'Jeu suivi avec succès.']);
@@ -68,5 +76,6 @@ class GameController extends Controller
 
     return response()->json(['error' => 'Action non valide.'], 400);
 }
+
 
 }
