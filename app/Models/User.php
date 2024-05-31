@@ -94,4 +94,14 @@ class User extends Authenticatable
         return $this->belongsToMany(User::class, 'group_members', 'user_id', 'group_id');
     }
 
+    public function likes()
+    {
+        return $this->hasMany(PostLike::class);
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
 }

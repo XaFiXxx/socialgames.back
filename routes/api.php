@@ -12,6 +12,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\GameReviewController;
+use App\Http\Controllers\CommentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -60,6 +61,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // ------------------- ROUTES FOR POSTS ------------------- //
     Route::post('/create/post', [PostController::class, 'createUserPost']);
     Route::post('/create/groupPost', [PostController::class, 'createGroupPost']);
+    Route::post('/post/{id}/like', [PostController::class, 'likePost']);
+
+    // ------------------- ROUTES FOR COMMENTS ------------------- //
+    Route::post('/post/{id}/comment', [CommentController::class, 'createComment']);
 
     // ------------------- ROUTES FOR PLATEFORMS ------------------- //
     Route::get('/platforms', [PlateformController::class, 'index']);
