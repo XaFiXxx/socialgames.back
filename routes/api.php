@@ -48,6 +48,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/games/index', [GameController::class, 'index']);
     Route::post('/games/{game}/follow', [GameController::class, 'toggleFollow']);
     Route::post('/games/{game}/rate', [GameReviewController::class, 'rateGame']);
+    Route::post('/games/{game}/rate/delete', [GameReviewController::class, 'rateGameDelete']);
+    Route::post('/games/{game}/rate/update', [GameReviewController::class, 'rateGameUpdate']);
 
     // ------------------- ROUTES FOR GROUPS ------------------- //
     Route::get('/groups', [GroupController::class, 'index']);
