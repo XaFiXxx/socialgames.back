@@ -74,4 +74,38 @@ class GameReviewController extends Controller
         return response()->json(['message' => 'Review deleted successfully'], 200);
     }
 
+    public function rateGameUpdate(Request $request, $game)
+    {
+        // Validation des données
+        $validator = Validator::make($request->all(), [
+            'review_id' => 'required|integer|exists:game_reviews,id',
+            'rating' => 'required|integer|min:1|max:5',
+            'review' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 400);
+        }
+
+        // Assurez-vous que l'utilisateur est authentifié
+        $user = $request->user();
+
+        // Trouver l'évaluation
+        $review = GameReview::where('id', $request->review_id)
+                            ->where('game_id', $game)
+                            ->where('user_id', $user->id)
+                            ->first();
+
+        if (!$review) {
+            return response()->json(['error' => 'Review not found or you do not have permission to update this review.'], 404);
+        }
+
+        // Mettre à jour l'évaluation
+        $review->rating = $request->rating;
+        $review->review = $request->review;
+        $review->save();
+
+        return response()->json(['message' => 'Review updated successfully', 'data' => $review], 200);
+    }
+
 }
