@@ -14,15 +14,23 @@ class PostController extends Controller
         $request->validate([
             'content' => 'required|string',
             'user_id' => 'required|integer|exists:users,id',
+            'group_id' => 'nullable|integer|exists:groups,id', // Validation optionnelle pour l'ID du groupe
         ]);
 
         $post = new Post();
         $post->content = $request->content;
         $post->user_id = $request->user_id;
+        
+        // Si un group_id est fourni, l'ajouter au post
+        if ($request->has('group_id')) {
+            $post->group_id = $request->group_id;
+        }
+        
         $post->save();
 
         return response()->json(['message' => 'Post créé avec succès!', 'post' => $post], 201);
     }
+
 
     public function likePost(Request $request, $id)
     {
