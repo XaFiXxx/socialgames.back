@@ -25,7 +25,6 @@ use App\Http\Controllers\CommentController;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-
 /* ------------------- ROUTES FOR LOGIN DASHBOARD ------------------- */
 
 Route::post('/dashboard/login', [AuthController::class, 'dashboardLogin']);
@@ -60,7 +59,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/group/create', [GroupController::class, 'store']);
     Route::post('/group/{id}/delete', [GroupController::class, 'deleteGroup']);
 
-
     // ------------------- ROUTES FOR POSTS ------------------- //
     Route::post('/create/post', [PostController::class, 'createUserPost']);
     Route::post('/create/groupPost', [PostController::class, 'createGroupPost']);
@@ -77,6 +75,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/search/suggestions', [SearchController::class, 'getSuggestions']);
     Route::get('/profil/{id}/{username}', [UserController::class, 'showUserById']);
     Route::get('/game/{id}/{name}', [GameController::class, 'show']);
+
+    // ------------------- ROUTES FOR DASHBOARD ------------------- //
+    Route::middleware('is_admin')->group(function () {
+        Route::get('/dashboard/users', [UserController::class, 'index']);
+        Route::post('/dashboard/user/is_admin', [UserController::class, 'is_admin']);
+    });
 });
-
-

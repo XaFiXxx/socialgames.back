@@ -102,5 +102,33 @@ class UserController extends Controller
         $groups = Group::where('created_by', $user->id)->get(); // Rechercher les groupes créés par l'utilisateur
         return response()->json(['groups' => $groups], 200);
     }
+
+
+    //------------------- ROUTES FOR DASHBOARD ------------------- //
+
+    // faut aller rechercehr tous les users pour les affichés dans le tabelau du Dashboard 
+    public function index(request $request)
+    {
+        $users = User::all();
+        return response()->json($users);
+    }
+
+    public function is_admin(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|integer|exists:users,id',
+            'is_admin' => 'required|boolean',
+        ]);
+
+        $user = User::find($request->user_id);
+        if (!$user) {
+            return response()->json(['message' => 'Utilisateur non trouvé.'], 404);
+        }
+
+        $user->is_admin = $request->is_admin;
+        $user->save();
+
+        return response()->json(['message' => 'Statut administrateur mis à jour avec succès.', 'user' => $user], 200);
+    }
     
 }

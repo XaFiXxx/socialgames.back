@@ -15,8 +15,7 @@ class IsAdmin
             return $next($request);
         }
 
-        // Rediriger si l'utilisateur n'est pas admin
-        return redirect('home')->with('error', "Vous n'avez pas accès à cette zone.");
+        // Retourne une réponse JSON si l'utilisateur n'est pas admin
+        return response()->json(['error' => "Vous n'avez pas accès à cette zone."], 403);
     }
 }
-
