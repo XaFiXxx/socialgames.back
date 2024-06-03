@@ -44,6 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user/platforms', [UserController::class, 'userPlatforms']);
     Route::post('/user/update/platforms', [UserController::class, 'updatePlatforms']);
     Route::post('/user/follow/{id}', [UserController::class, 'toggleFollowUser']);
+    Route::get('/user/groups', [UserController::class, 'userGroups']);
 
     // ------------------- ROUTES FOR GAMES ------------------- //
     Route::get('/games/index', [GameController::class, 'index']);
@@ -57,6 +58,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/group/{id}', [GroupController::class, 'show']);
     Route::post('/group/{id}/follow', [GroupController::class, 'followGroup']);
     Route::post('/group/create', [GroupController::class, 'store']);
+    Route::post('/group/{id}/delete', [GroupController::class, 'deleteGroup']);
+
 
     // ------------------- ROUTES FOR POSTS ------------------- //
     Route::post('/create/post', [PostController::class, 'createUserPost']);

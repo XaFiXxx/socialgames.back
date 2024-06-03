@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\Follow;
 use Illuminate\Http\Request;
+use App\Models\Group;
 
 class UserController extends Controller
 {
@@ -93,6 +94,13 @@ class UserController extends Controller
             $me->following()->attach($user);
             return response()->json(['message' => 'User followed']);
         }
+    }
+
+    public function userGroups(Request $request)
+    {
+        $user = auth()->user();
+        $groups = Group::where('created_by', $user->id)->get(); // Rechercher les groupes créés par l'utilisateur
+        return response()->json(['groups' => $groups], 200);
     }
     
 }

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Group;
 use App\Models\Game;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class GroupController extends Controller
 {
@@ -95,5 +96,22 @@ class GroupController extends Controller
         }
     }
     
+    public function deleteGroup(Request $request, $id)
+    {
+        $user = Auth::user();
+        $group = Group::find($id);
+
+        if (!$group) {
+            return response()->json(['message' => 'Groupe non trouvé.'], 404);
+        }
+
+        if ($group->created_by != $user->id) {
+            return response()->json(['message' => 'Non autorisé à supprimer ce groupe.'], 403);
+        }
+
+        $group->delete();
+        return response()->json(['message' => 'Groupe supprimé avec succès.'], 200);
+    }
+
 
 }
