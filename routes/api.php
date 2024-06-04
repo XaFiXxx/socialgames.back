@@ -13,6 +13,7 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\GameReviewController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\GenreController;
 
 /*
 |--------------------------------------------------------------------------
@@ -86,5 +87,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
         // ------------------- ROUTES FOR GAMES ------------------- //
+        Route::get('/dashboard/games', [GameController::class, 'index']);
+        Route::get('/genres', [GenreController::class, 'index']);
+        Route::post('/dashboard/games/{id}/update', [GameController::class, 'update']);
     });
 });

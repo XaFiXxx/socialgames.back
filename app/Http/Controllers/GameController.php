@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Game;
 use App\Models\GameReview;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class GameController extends Controller
 {
@@ -76,6 +77,59 @@ class GameController extends Controller
 
     return response()->json(['error' => 'Action non valide.'], 400);
 }
+    public function update(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+            'developer' => 'required|string|max:255',
+            'publisher' => 'required|string|max:255',
+            'release_date' => 'required|date',
+            'genres' => 'required|array',
+            'genres.*' => 'exists:genres,id',
+            'platforms' => 'required|array',
+            'platforms.*' => 'exists:platforms,id',
+            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048'
+        ]);
 
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+
+        $game = Game::find($id);
+        if (!$game) {
+            return response()->json(['message' => 'Jeu non trouvé.'], 404);
+        }
+
+        $game->name = $request->input('name');
+        $game->description = $request->input('description');
+        $game->developer = $request->input('developer');
+        $game->publisher = $request->input('publisher');
+        $game->release_date = $request->input('release_date');
+
+        if ($request->hasFile('cover_image')) {
+            $imagePath = $request->file('cover_image')->store('public/img');
+            $game->cover_image = $imagePath;
+        }
+
+        $game->save();
+
+        // Mettre à jour les genres et plateformes associés
+        $game->genres()->sync($request->input('genres'));
+        $game->platforms()->sync($request->input('platforms'));
+
+        return response()->json(['game' => $game, 'message' => 'Jeu mis à jour avec succès.'], 200);
+    }
+
+    public function delete ($id)
+    {
+        $game = Game::find($id);
+        if (!$game) {
+            return response()->json(['message' => 'Jeu non trouvé.'], 404);
+        }
+
+        $game->delete();
+        return response()->json(['message' => 'Jeu supprimé avec succès.']);
+    }
 
 }
