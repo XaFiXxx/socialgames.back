@@ -82,7 +82,8 @@ Route::middleware('auth:sanctum')->group(function () {
         // ------------------- ROUTES FOR USERS ------------------- //
         Route::get('/dashboard/users', [UserController::class, 'index']);
         Route::post('/dashboard/user/is_admin', [UserController::class, 'is_admin']);
-        Route::post('/dashboard/users/{users}/delete', [UserController::class, 'deleteUser']);
+        Route::delete('/dashboard/users/{userId}/delete', [UserController::class, 'deleteUser']);
+
 
         // ------------------- ROUTES FOR GAMES ------------------- //
     });
