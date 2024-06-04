@@ -130,5 +130,16 @@ class UserController extends Controller
 
         return response()->json(['message' => 'Statut administrateur mis à jour avec succès.', 'user' => $user], 200);
     }
+
+    function deleteUser (Request $request, $userId) 
+    {
+        $user = User::find($userId);
+        if (!$user) {
+            return response()->json(['message' => 'Utilisateur non trouvé.'], 404);
+        }
+
+        $user->delete();
+        return response()->json(['message' => 'Utilisateur supprimé avec succès.'], 200);
+    }
     
 }
