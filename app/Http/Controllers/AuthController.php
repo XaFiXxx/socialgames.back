@@ -30,17 +30,13 @@ class AuthController extends Controller
     }
 
     // Traitement de l'upload de l'avatar
-    $avatarPath = null;
+    $avatarPath = 'storage/img/users/defaultUser.webp';
     if ($request->hasFile('avatar')) {
         // Stocke l'image dans le dossier spécifié et récupère le chemin relatif
-        $avatarPath = $request->file('avatar')->store('img', 'public');
+        $avatarPath = $request->file('avatar')->store('img/users/profil', 'public');
 
-        // Construit l'URL accessible pour l'image
-        // Note: Assure-toi que tu as configuré un lien symbolique comme expliqué précédemment
-        $avatarUrl = 'storage/' . $avatarPath;
-    } else {
-        // Optionnel : définit une URL par défaut ou laisse null si pas d'avatar uploadé
-        $avatarUrl = null; 
+        // Ajoute 'storage/' en préfixe pour stocker le chemin complet dans la base de données
+        $avatarPath = 'storage/' . $avatarPath;
     }
 
     // Création de l'utilisateur en base de données
@@ -49,14 +45,13 @@ class AuthController extends Controller
         'email' => $request->email,
         'password' => Hash::make($request->password),
         'birthday' => $request->birthday,
-        'avatar_url' => $avatarUrl, // Sauvegarde l'URL publique de l'avatar
+        'avatar_url' => $avatarPath, // Sauvegarde l'URL publique de l'avatar
         'location' => $request->location,
     ]);
 
     // Retourne une réponse JSON indiquant le succès de l'opération
     return response()->json(['message' => 'Utilisateur créé avec succès', 'user' => $user]);
 }
-
 
 
 
