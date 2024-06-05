@@ -21,7 +21,7 @@ class AuthController extends Controller
         'password' => 'required|string|min:6',
         'location' => 'sometimes|string|max:255',
         'birthday' => 'sometimes|date',
-        'avatar' => 'sometimes|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+        'avatar' => 'sometimes|image|mimes:jpeg,webp,png,jpg,gif,svg,webp|max:2048',
     ]);
 
     // Retourne une réponse JSON en cas d'échec de la validation

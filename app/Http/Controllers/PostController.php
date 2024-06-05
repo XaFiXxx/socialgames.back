@@ -16,7 +16,7 @@ class PostController extends Controller
             'content' => 'required|string',
             'user_id' => 'required|integer|exists:users,id',
             'group_id' => 'nullable|integer|exists:groups,id', 
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,webp,png,jpg,gif|max:2048',
             'video' => 'nullable|mimetypes:video/mp4,video/mpeg,video/quicktime|max:20000'
         ]);
     
@@ -34,29 +34,22 @@ class PostController extends Controller
     
         // Gestion des fichiers d'image
         if ($request->hasFile('image')) {
-            $image = $request->file('image');
-            $imageName = time().'.'.$image->getClientOriginalExtension();
-            $image->move(public_path('img/posts/img'), $imageName);
-            $post->image_path = 'img/posts/img/'.$imageName;
+            $imagePath = $request->file('image')->store('img/posts/img', 'public');
+            $post->image_path = 'storage/' . $imagePath;
         }
     
         // Gestion des fichiers vidéo
         if ($request->hasFile('video')) {
-            $video = $request->file('video');
-            $videoName = time().'.'.$video->getClientOriginalExtension();
-            $video->move(public_path('img/posts/video'), $videoName);
-            $post->video_path = 'img/posts/video/'.$videoName;
+            $videoPath = $request->file('video')->store('img/posts/video', 'public');
+            $post->video_path = 'storage/' . $videoPath;
         }
     
         $post->save();
     
         return response()->json(['message' => 'Post créé avec succès!', 'post' => $post], 201);
     }
+      
     
-
-
-
-
     public function likePost(Request $request, $id)
     {
         $user = $request->user();

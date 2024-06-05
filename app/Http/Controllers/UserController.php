@@ -97,11 +97,21 @@ class UserController extends Controller
     }
 
     public function userGroups(Request $request)
-    {
-        $user = auth()->user();
-        $groups = Group::where('created_by', $user->id)->get(); // Rechercher les groupes créés par l'utilisateur
-        return response()->json(['groups' => $groups], 200);
-    }
+{
+    $user = auth()->user();
+
+    // Groupes créés par l'utilisateur
+    $groups = Group::where('created_by', $user->id)->get();
+
+    // Groupes suivis par l'utilisateur
+    $followedGroups = $user->followedGroups; // Utilisez la relation définie précédemment
+
+    return response()->json([
+        'groups' => $groups,
+        'followed_groups' => $followedGroups
+    ], 200);
+}
+
 
 
     //------------------- ROUTES FOR DASHBOARD ------------------- //
