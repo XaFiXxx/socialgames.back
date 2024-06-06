@@ -105,5 +105,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/dashboard/genres/create', [GenreController::class, 'store']);
         Route::post('/dashboard/genres/{id}/update', [GenreController::class, 'update']);
         Route::delete('/dashboard/genres/{id}/delete', [GenreController::class, 'delete']);
+
+        // ------------------- ROUTES FOR GROUPS ------------------- //
+        Route::post('/dashboard/groups/create', [GroupController::class, 'storeDashboard']);
+        Route::post('/dashboard/groups/{id}/update', [GroupController::class, 'updateDashboard']);
+        Route::delete('/dashboard/groups/{id}/delete', [GroupController::class, 'deleteDashboard']);
+
     });
 });
