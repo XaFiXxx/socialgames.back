@@ -111,5 +111,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/dashboard/groups/{id}/update', [GroupController::class, 'updateDashboard']);
         Route::delete('/dashboard/groups/{id}/delete', [GroupController::class, 'deleteDashboard']);
 
+        // ------------------- ROUTES FOR POSTS ------------------- //
+        Route::get('/dashboard/posts', [PostController::class, 'index']);
+        Route::delete('/dashboard/posts/{id}/delete', [PostController::class, 'deleteDashboard']);
+        Route::post('/dashboard/posts/{id}/update', [PostController::class, 'updateDashboard']);
+
     });
 });
