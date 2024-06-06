@@ -60,7 +60,7 @@ class GenreController extends Controller
     }
 
     // Méthode pour supprimer un genre (facultatif)
-    public function destroy($id)
+    public function delete($id)
     {
         $genre = Genre::find($id);
 

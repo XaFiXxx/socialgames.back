@@ -88,13 +88,21 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // ------------------- ROUTES FOR GAMES ------------------- //
         Route::get('/dashboard/games', [GameController::class, 'index']);
-        Route::get('/genres', [GenreController::class, 'index']);
+        Route::post('/dashboard/games/create', [GameController::class, 'store']);
         Route::post('/dashboard/games/{id}/update', [GameController::class, 'update']);
+        Route::delete('/dashboard/games/{id}/delete', [GameController::class, 'delete']);
 
         // ------------------- ROUTES FOR PLATEFORMS ------------------- //
         Route::get('/dashboard/platforms', [PlateformController::class, 'index']);
         Route::post('/dashboard/platforms/create', [PlateformController::class, 'store']);
         Route::post('/dashboard/platforms/{id}/update', [PlateformController::class, 'update']);
         Route::delete('/dashboard/platforms/{id}/delete', [PlateformController::class, 'delete']);
+
+        // ------------------- ROUTES FOR GENRE ------------------- //
+        Route::get('/genres', [GenreController::class, 'index']);
+        Route::get('/dashboard/genres', [GenreController::class, 'index']);
+        Route::post('/dashboard/genres/create', [GenreController::class, 'store']);
+        Route::post('/dashboard/genres/{id}/update', [GenreController::class, 'update']);
+        Route::delete('/dashboard/genres/{id}/delete', [GenreController::class, 'delete']);
     });
 });
