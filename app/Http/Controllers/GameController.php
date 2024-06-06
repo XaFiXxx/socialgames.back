@@ -7,6 +7,8 @@ use App\Models\Game;
 use App\Models\GameReview;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
+
 
 class GameController extends Controller
 {
@@ -77,6 +79,50 @@ class GameController extends Controller
 
     return response()->json(['error' => 'Action non valide.'], 400);
 }
+
+
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+            'developer' => 'required|string|max:255',
+            'publisher' => 'required|string|max:255',
+            'release_date' => 'required|date',
+            'genres' => 'required|array',
+            'genres.*' => 'exists:genres,id',
+            'platforms' => 'required|array',
+            'platforms.*' => 'exists:platforms,id',
+            'cover_image' => 'nullable|image|mimes:jpeg,webp,png,jpg,gif|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 400);
+        }
+
+        $game = new Game();
+        $game->name = $request->name;
+        $game->description = $request->description;
+        $game->developer = $request->developer;
+        $game->publisher = $request->publisher;
+        $game->release_date = $request->release_date;
+
+        // Gestion des fichiers d'image de couverture
+        if ($request->hasFile('cover_image')) {
+            $imagePath = $request->file('cover_image')->store('img/games/cover', 'public');
+            $game->cover_image = 'storage/' . $imagePath;
+        }
+
+        $game->save();
+
+        // Synchroniser les genres et les plateformes
+        $game->genres()->sync($request->genres);
+        $game->platforms()->sync($request->platforms);
+
+        return response()->json(['message' => 'Jeu créé avec succès!', 'game' => $game], 201);
+    }
+
+
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
@@ -89,7 +135,7 @@ class GameController extends Controller
             'genres.*' => 'exists:genres,id',
             'platforms' => 'required|array',
             'platforms.*' => 'exists:platforms,id',
-            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048'
+            'cover_image' => 'nullable|image|mimes:jpeg,png,webp,jpg,gif,svg|max:2048'
         ]);
 
         if ($validator->fails()) {
@@ -108,8 +154,15 @@ class GameController extends Controller
         $game->release_date = $request->input('release_date');
 
         if ($request->hasFile('cover_image')) {
-            $imagePath = $request->file('cover_image')->store('public/img');
-            $game->cover_image = $imagePath;
+            // Supprimer l'ancienne image de couverture si elle existe
+            $oldImagePath = str_replace('storage/', '', $game->cover_image);
+            if ($game->cover_image && Storage::disk('public')->exists($oldImagePath)) {
+                Storage::disk('public')->delete($oldImagePath);
+            }
+
+            // Enregistrer la nouvelle image de couverture
+            $imagePath = $request->file('cover_image')->store('img/games/cover', 'public');
+            $game->cover_image = 'storage/' . $imagePath;
         }
 
         $game->save();
@@ -121,15 +174,7 @@ class GameController extends Controller
         return response()->json(['game' => $game, 'message' => 'Jeu mis à jour avec succès.'], 200);
     }
 
-    public function delete ($id)
-    {
-        $game = Game::find($id);
-        if (!$game) {
-            return response()->json(['message' => 'Jeu non trouvé.'], 404);
-        }
 
-        $game->delete();
-        return response()->json(['message' => 'Jeu supprimé avec succès.']);
-    }
+
 
 }
