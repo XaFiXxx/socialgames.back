@@ -90,5 +90,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/dashboard/games', [GameController::class, 'index']);
         Route::get('/genres', [GenreController::class, 'index']);
         Route::post('/dashboard/games/{id}/update', [GameController::class, 'update']);
+
+        // ------------------- ROUTES FOR PLATEFORMS ------------------- //
+        Route::get('/dashboard/platforms', [PlateformController::class, 'index']);
+        Route::post('/dashboard/platforms/create', [PlateformController::class, 'store']);
+        Route::post('/dashboard/platforms/{id}/update', [PlateformController::class, 'update']);
+        Route::delete('/dashboard/platforms/{id}/delete', [PlateformController::class, 'delete']);
     });
 });
