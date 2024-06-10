@@ -99,20 +99,86 @@ class UserController extends Controller
     }
 
     public function userGroups(Request $request)
-{
-    $user = auth()->user();
+    {
+        $user = auth()->user();
 
-    // Groupes créés par l'utilisateur
-    $groups = Group::where('created_by', $user->id)->get();
+        // Groupes créés par l'utilisateur
+        $groups = Group::where('created_by', $user->id)->get();
 
-    // Groupes suivis par l'utilisateur
-    $followedGroups = $user->followedGroups; // Utilisez la relation définie précédemment
+        // Groupes suivis par l'utilisateur
+        $followedGroups = $user->followedGroups; // Utilisez la relation définie précédemment
 
-    return response()->json([
-        'groups' => $groups,
-        'followed_groups' => $followedGroups
-    ], 200);
-}
+        return response()->json([
+            'groups' => $groups,
+            'followed_groups' => $followedGroups
+        ], 200);
+    }
+
+    public function updateProfilImg(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'avatar' => 'required|image|mimes:jpeg,webp,png,jpg,gif,svg|max:2048'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Utilisateur non trouvé.'], 404);
+        }
+
+        if ($user->avatar_url && $user->avatar_url !== 'storage/img/users/defaultUser.webp') {
+            $oldAvatarPath = public_path($user->avatar_url);
+            if (file_exists($oldAvatarPath)) {
+                unlink($oldAvatarPath);
+            }
+        }
+
+        $avatar = $request->file('avatar');
+        $avatarName = time() . '_' . $avatar->getClientOriginalName();
+        $avatarDestinationPath = public_path('storage/img/users/profil');
+        $avatar->move($avatarDestinationPath, $avatarName);
+        $user->avatar_url = 'storage/img/users/profil/' . $avatarName;
+
+        $user->save();
+
+        return response()->json(['avatar_url' => $user->avatar_url, 'message' => 'Photo de profil mise à jour avec succès.'], 200);
+    }
+
+    public function updateCoverImg(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'cover' => 'required|image|mimes:jpeg,webp,png,jpg,gif,svg|max:2048'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Utilisateur non trouvé.'], 404);
+        }
+
+        if ($user->cover_url && $user->cover_url !== 'storage/img/users/defaultCover.webp') {
+            $oldCoverPath = public_path($user->cover_url);
+            if (file_exists($oldCoverPath)) {
+                unlink($oldCoverPath);
+            }
+        }
+
+        $cover = $request->file('cover');
+        $coverName = time() . '_' . $cover->getClientOriginalName();
+        $coverDestinationPath = public_path('storage/img/users/cover');
+        $cover->move($coverDestinationPath, $coverName);
+        $user->cover_url = 'storage/img/users/cover/' . $coverName;
+
+        $user->save();
+
+        return response()->json(['cover_url' => $user->cover_url, 'message' => 'Photo de couverture mise à jour avec succès.'], 200);
+    }
 
 
 
