@@ -17,6 +17,8 @@ class AuthController extends Controller
         // Validation des données entrantes
         $validator = Validator::make($request->all(), [
             'username' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
+            'surname' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6',
             'location' => 'sometimes|string|max:255',
@@ -42,6 +44,8 @@ class AuthController extends Controller
         // Création de l'utilisateur en base de données
         $user = User::create([
             'username' => $request->username,
+            'name' => $request->name,
+            'surname' => $request->surname,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'birthday' => $request->birthday,
@@ -52,6 +56,7 @@ class AuthController extends Controller
         // Retourne une réponse JSON indiquant le succès de l'opération
         return response()->json(['message' => 'Utilisateur créé avec succès', 'user' => $user]);
     }
+
 
 
 
