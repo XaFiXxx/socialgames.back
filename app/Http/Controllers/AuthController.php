@@ -13,45 +13,46 @@ use App\Http\Resources\UserResource;
 class AuthController extends Controller
 {
     public function register(Request $request)
-{
-    // Validation des données entrantes
-    $validator = Validator::make($request->all(), [
-        'username' => 'required|string|max:255',
-        'email' => 'required|string|email|max:255|unique:users',
-        'password' => 'required|string|min:6',
-        'location' => 'sometimes|string|max:255',
-        'birthday' => 'sometimes|date',
-        'avatar' => 'sometimes|image|mimes:jpeg,webp,png,jpg,gif,svg,webp|max:2048',
-    ]);
+    {
+        // Validation des données entrantes
+        $validator = Validator::make($request->all(), [
+            'username' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:6',
+            'location' => 'sometimes|string|max:255',
+            'birthday' => 'sometimes|date',
+            'avatar' => 'sometimes|image|mimes:jpeg,webp,png,jpg,gif,svg,webp|max:2048',
+        ]);
 
-    // Retourne une réponse JSON en cas d'échec de la validation
-    if ($validator->fails()) {
-        return response()->json($validator->errors(), 400);
+        // Retourne une réponse JSON en cas d'échec de la validation
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
+
+        // Traitement de l'upload de l'avatar
+        $avatarPath = 'storage/img/users/defaultUser.webp';
+        if ($request->hasFile('avatar')) {
+            $avatar = $request->file('avatar');
+            $avatarName = time() . '_' . $avatar->getClientOriginalName();
+            $destinationPath = public_path('storage/img/users/profil');
+            $avatar->move($destinationPath, $avatarName);
+            $avatarPath = 'storage/img/users/profil/' . $avatarName;
+        }
+
+        // Création de l'utilisateur en base de données
+        $user = User::create([
+            'username' => $request->username,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'birthday' => $request->birthday,
+            'avatar_url' => $avatarPath, // Sauvegarde l'URL publique de l'avatar
+            'location' => $request->location,
+        ]);
+
+        // Retourne une réponse JSON indiquant le succès de l'opération
+        return response()->json(['message' => 'Utilisateur créé avec succès', 'user' => $user]);
     }
 
-    // Traitement de l'upload de l'avatar
-    $avatarPath = 'storage/img/users/defaultUser.webp';
-    if ($request->hasFile('avatar')) {
-        // Stocke l'image dans le dossier spécifié et récupère le chemin relatif
-        $avatarPath = $request->file('avatar')->store('img/users/profil', 'public');
-
-        // Ajoute 'storage/' en préfixe pour stocker le chemin complet dans la base de données
-        $avatarPath = 'storage/' . $avatarPath;
-    }
-
-    // Création de l'utilisateur en base de données
-    $user = User::create([
-        'username' => $request->username,
-        'email' => $request->email,
-        'password' => Hash::make($request->password),
-        'birthday' => $request->birthday,
-        'avatar_url' => $avatarPath, // Sauvegarde l'URL publique de l'avatar
-        'location' => $request->location,
-    ]);
-
-    // Retourne une réponse JSON indiquant le succès de l'opération
-    return response()->json(['message' => 'Utilisateur créé avec succès', 'user' => $user]);
-}
 
 
 

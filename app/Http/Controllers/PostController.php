@@ -21,35 +21,42 @@ class PostController extends Controller
             'image' => 'nullable|image|mimes:jpeg,webp,png,jpg,gif|max:2048',
             'video' => 'nullable|mimetypes:video/mp4,video/mpeg,video/quicktime|max:20000'
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 400);
         }
-    
+
         $post = new Post();
         $post->content = $request->content;
         $post->user_id = $request->user_id;
-    
+
         if ($request->has('group_id')) {
             $post->group_id = $request->group_id;
         }
-    
+
         // Gestion des fichiers d'image
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('img/posts/img', 'public');
-            $post->image_path = 'storage/' . $imagePath;
+            $image = $request->file('image');
+            $imageName = time() . '_' . $image->getClientOriginalName();
+            $destinationPath = public_path('storage/img/posts/img');
+            $image->move($destinationPath, $imageName);
+            $post->image_path = 'storage/img/posts/img/' . $imageName;
         }
-    
+
         // Gestion des fichiers vidéo
         if ($request->hasFile('video')) {
-            $videoPath = $request->file('video')->store('img/posts/video', 'public');
-            $post->video_path = 'storage/' . $videoPath;
+            $video = $request->file('video');
+            $videoName = time() . '_' . $video->getClientOriginalName();
+            $destinationPath = public_path('storage/img/posts/video');
+            $video->move($destinationPath, $videoName);
+            $post->video_path = 'storage/img/posts/video/' . $videoName;
         }
-    
+
         $post->save();
-    
+
         return response()->json(['message' => 'Post créé avec succès!', 'post' => $post], 201);
     }
+
       
     
     public function likePost(Request $request, $id)
@@ -107,22 +114,28 @@ class PostController extends Controller
 
         // Gestion des fichiers d'image
         if ($request->hasFile('image')) {
-            $oldImagePath = str_replace('storage/', '', $post->image_path);
-            if ($post->image_path && Storage::disk('public')->exists($oldImagePath) && !in_array($post->image_path, ['storage/img/users/defaultUser.webp'])) {
-                Storage::disk('public')->delete($oldImagePath);
+            $oldImagePath = public_path($post->image_path);
+            if ($post->image_path && file_exists($oldImagePath) && !in_array($post->image_path, ['storage/img/users/defaultUser.webp'])) {
+                unlink($oldImagePath);
             }
-            $imagePath = $request->file('image')->store('img/posts/img', 'public');
-            $post->image_path = 'storage/' . $imagePath;
+            $image = $request->file('image');
+            $imageName = time() . '_' . $image->getClientOriginalName();
+            $destinationPath = public_path('storage/img/posts/img');
+            $image->move($destinationPath, $imageName);
+            $post->image_path = 'storage/img/posts/img/' . $imageName;
         }
 
         // Gestion des fichiers vidéo
         if ($request->hasFile('video')) {
-            $oldVideoPath = str_replace('storage/', '', $post->video_path);
-            if ($post->video_path && Storage::disk('public')->exists($oldVideoPath)) {
-                Storage::disk('public')->delete($oldVideoPath);
+            $oldVideoPath = public_path($post->video_path);
+            if ($post->video_path && file_exists($oldVideoPath)) {
+                unlink($oldVideoPath);
             }
-            $videoPath = $request->file('video')->store('img/posts/video', 'public');
-            $post->video_path = 'storage/' . $videoPath;
+            $video = $request->file('video');
+            $videoName = time() . '_' . $video->getClientOriginalName();
+            $destinationPath = public_path('storage/img/posts/video');
+            $video->move($destinationPath, $videoName);
+            $post->video_path = 'storage/img/posts/video/' . $videoName;
         }
 
         $post->save();
@@ -131,31 +144,34 @@ class PostController extends Controller
     }
 
 
+
     public function deleteDashboard(Request $request, $id)
     {
         $user = Auth::user();
+
+        if (!$user->is_admin) {
+            return response()->json(['message' => 'Non autorisé à supprimer ce post.'], 403);
+        }
+
         $post = Post::find($id);
 
         if (!$post) {
             return response()->json(['message' => 'Post non trouvé.'], 404);
         }
 
-        if ($post->user_id != $user->id) {
-            return response()->json(['message' => 'Non autorisé à supprimer ce post.'], 403);
-        }
-
         // Supprimer l'image associée si elle existe
-        if ($post->image_path && Storage::disk('public')->exists(str_replace('storage/', '', $post->image_path))) {
-            Storage::disk('public')->delete(str_replace('storage/', '', $post->image_path));
+        if ($post->image_path && file_exists(public_path($post->image_path)) && !in_array($post->image_path, ['storage/img/users/defaultUser.webp'])) {
+            unlink(public_path($post->image_path));
         }
 
         // Supprimer la vidéo associée si elle existe
-        if ($post->video_path && Storage::disk('public')->exists(str_replace('storage/', '', $post->video_path))) {
-            Storage::disk('public')->delete(str_replace('storage/', '', $post->video_path));
+        if ($post->video_path && file_exists(public_path($post->video_path))) {
+            unlink(public_path($post->video_path));
         }
 
         $post->delete();
         return response()->json(['message' => 'Post supprimé avec succès!'], 200);
     }
+
 
 }

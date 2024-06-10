@@ -20,7 +20,7 @@ class GroupController extends Controller
     public function show($id)
     {
         $user = auth()->user();  // Récupérer l'utilisateur authentifié
-        $group = Group::with(['game', 'posts', 'members'])->find($id);
+        $group = Group::with(['game', 'posts.user', 'members'])->find($id);
 
         if (!$group) {
             return response()->json(['message' => 'Group not found'], 404);
@@ -37,40 +37,44 @@ class GroupController extends Controller
     }
 
     public function store(Request $request)
-{
-    // Validation des données
-    $validator = Validator::make($request->all(), [
-        'name' => 'required|string|max:255',
-        'description' => 'nullable|string',
-        'game_id' => 'required|integer|exists:games,id',
-        'group_image' => 'nullable|image|mimes:jpeg,webp,png,jpg,gif,svg|max:2048',
-        'privacy' => 'required|in:public,private',
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json(['error' => $validator->errors()], 400);
+    {
+        // Validation des données
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'game_id' => 'required|integer|exists:games,id',
+            'group_image' => 'nullable|image|mimes:jpeg,webp,png,jpg,gif,svg|max:2048',
+            'privacy' => 'required|in:public,private',
+        ]);
+    
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 400);
+        }
+    
+        // Gestion de l'image du groupe
+        $imagePath = null;
+        if ($request->hasFile('group_image')) {
+            $image = $request->file('group_image');
+            $imageName = time() . '_' . $image->getClientOriginalName();
+            $destinationPath = public_path('storage/img/groups');
+            $image->move($destinationPath, $imageName);
+            $imagePath = 'storage/img/groups/' . $imageName;
+        }
+    
+        // Création du groupe
+        $group = Group::create([
+            'name' => $request->name,
+            'description' => $request->description,
+            'game_id' => $request->game_id,
+            'group_image' => $imagePath,
+            'privacy' => $request->privacy,
+            'created_by' => auth()->id(), // Assurez-vous que l'utilisateur est authentifié
+            'is_active' => 1, // Par défaut, le groupe est actif
+        ]);
+    
+        return response()->json($group, 201);
     }
-
-    // Gestion de l'image du groupe
-    $imagePath = null;
-    if ($request->hasFile('group_image')) {
-        $imagePath = $request->file('group_image')->store('img/groups', 'public');
-        $imagePath = 'storage/' . $imagePath;
-    }
-
-    // Création du groupe
-    $group = Group::create([
-        'name' => $request->name,
-        'description' => $request->description,
-        'game_id' => $request->game_id,
-        'group_image' => $imagePath,
-        'privacy' => $request->privacy,
-        'created_by' => auth()->id(), // Assurez-vous que l'utilisateur est authentifié
-        'is_active' => 1, // Par défaut, le groupe est actif
-    ]);
-
-    return response()->json($group, 201);
-}
+    
 
 
 
@@ -109,13 +113,14 @@ class GroupController extends Controller
         }
 
         // Supprimer l'image de groupe si elle existe
-        if ($group->group_image && Storage::disk('public')->exists(str_replace('storage/', '', $group->group_image))) {
-            Storage::disk('public')->delete(str_replace('storage/', '', $group->group_image));
+        if ($group->group_image && file_exists(public_path($group->group_image))) {
+            unlink(public_path($group->group_image));
         }
 
         $group->delete();
         return response()->json(['message' => 'Groupe supprimé avec succès.'], 200);
     }
+
 
 
     // ------------------- ROUTES FOR DASHBOARD ------------------- //
@@ -143,14 +148,18 @@ class GroupController extends Controller
         $group->privacy = $request->input('privacy');
 
         if ($request->hasFile('group_image')) {
-            $imagePath = $request->file('group_image')->store('img/groups', 'public');
-            $group->group_image = 'storage/' . $imagePath;
+            $image = $request->file('group_image');
+            $imageName = time() . '_' . $image->getClientOriginalName();
+            $destinationPath = public_path('storage/img/groups');
+            $image->move($destinationPath, $imageName);
+            $group->group_image = 'storage/img/groups/' . $imageName;
         }
 
         $group->save();
 
         return response()->json(['group' => $group, 'message' => 'Groupe créé avec succès!'], 201);
     }
+
 
     public function updateDashboard(Request $request, $id)
     {
@@ -180,12 +189,15 @@ class GroupController extends Controller
 
         if ($request->hasFile('group_image')) {
             // Supprimer l'ancienne image de groupe si elle existe
-            if ($group->group_image && Storage::disk('public')->exists(str_replace('storage/', '', $group->group_image))) {
-                Storage::disk('public')->delete(str_replace('storage/', '', $group->group_image));
+            if ($group->group_image && file_exists(public_path($group->group_image))) {
+                unlink(public_path($group->group_image));
             }
             // Enregistrer la nouvelle image de groupe
-            $imagePath = $request->file('group_image')->store('img/groups', 'public');
-            $group->group_image = 'storage/' . $imagePath;
+            $image = $request->file('group_image');
+            $imageName = time() . '_' . $image->getClientOriginalName();
+            $destinationPath = public_path('storage/img/groups');
+            $image->move($destinationPath, $imageName);
+            $group->group_image = 'storage/img/groups/' . $imageName;
         }
 
         $group->save();
@@ -193,7 +205,8 @@ class GroupController extends Controller
         return response()->json(['group' => $group, 'message' => 'Groupe mis à jour avec succès.'], 200);
     }
 
-    // Supprimer un groupe
+
+   // Supprimer un groupe
     public function deleteDashboard($id)
     {
         $group = Group::find($id);
@@ -202,13 +215,14 @@ class GroupController extends Controller
         }
 
         // Supprimer l'image de groupe si elle existe
-        if ($group->group_image && Storage::disk('public')->exists(str_replace('storage/', '', $group->group_image))) {
-            Storage::disk('public')->delete(str_replace('storage/', '', $group->group_image));
+        if ($group->group_image && file_exists(public_path($group->group_image))) {
+            unlink(public_path($group->group_image));
         }
 
         $group->delete();
 
         return response()->json(['message' => 'Groupe supprimé avec succès.'], 200);
     }
+
 
 }

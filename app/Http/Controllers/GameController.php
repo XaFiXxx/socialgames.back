@@ -37,48 +37,48 @@ class GameController extends Controller
      * Permet à un utilisateur de suivre ou de se désabonner d'un jeu.
      */
     public function toggleFollow(Request $request, Game $game)
-{
-    $user = Auth::user();
-    $isFollowed = $request->input('isFollowed');
+    {
+        $user = Auth::user();
+        $isFollowed = $request->input('isFollowed');
 
-    // Vérifier si l'utilisateur suit déjà le jeu
-    $review = GameReview::where('game_id', $game->id)
-                        ->where('user_id', $user->id)
-                        ->first();
+        // Vérifier si l'utilisateur suit déjà le jeu
+        $review = GameReview::where('game_id', $game->id)
+                            ->where('user_id', $user->id)
+                            ->first();
 
-    if ($review) {
-        if (!$isFollowed) {
-            // Si l'utilisateur veut se désabonner
-            if ($review->rating === null && $review->review === null) {
-                // Supprimer l'enregistrement si rating et review sont nulles
-                $review->delete();
-                return response()->json(['message' => 'Vous avez arrêté de suivre ce jeu et la revue a été supprimée.']);
+        if ($review) {
+            if (!$isFollowed) {
+                // Si l'utilisateur veut se désabonner
+                if ($review->rating === null && $review->review === null) {
+                    // Supprimer l'enregistrement si rating et review sont nulles
+                    $review->delete();
+                    return response()->json(['message' => 'Vous avez arrêté de suivre ce jeu et la revue a été supprimée.']);
+                } else {
+                    // Mettre à jour uniquement le champ is_wishlist
+                    $review->is_wishlist = false;
+                    $review->save();
+                    return response()->json(['message' => 'Vous avez arrêté de suivre ce jeu.']);
+                }
             } else {
-                // Mettre à jour uniquement le champ is_wishlist
-                $review->is_wishlist = false;
+                // Si l'utilisateur veut suivre le jeu, mettre à jour le champ is_wishlist
+                $review->is_wishlist = true;
                 $review->save();
-                return response()->json(['message' => 'Vous avez arrêté de suivre ce jeu.']);
+                return response()->json(['message' => 'Jeu suivi avec succès.']);
             }
         } else {
-            // Si l'utilisateur veut suivre le jeu, mettre à jour le champ is_wishlist
-            $review->is_wishlist = true;
-            $review->save();
-            return response()->json(['message' => 'Jeu suivi avec succès.']);
+            if ($isFollowed) {
+                // Si l'utilisateur veut suivre le jeu et qu'il n'y a pas encore de revue, créer une nouvelle entrée
+                GameReview::create([
+                    'game_id' => $game->id,
+                    'user_id' => $user->id,
+                    'is_wishlist' => true
+                ]);
+                return response()->json(['message' => 'Jeu suivi avec succès.']);
+            }
         }
-    } else {
-        if ($isFollowed) {
-            // Si l'utilisateur veut suivre le jeu et qu'il n'y a pas encore de revue, créer une nouvelle entrée
-            GameReview::create([
-                'game_id' => $game->id,
-                'user_id' => $user->id,
-                'is_wishlist' => true
-            ]);
-            return response()->json(['message' => 'Jeu suivi avec succès.']);
-        }
-    }
 
-    return response()->json(['error' => 'Action non valide.'], 400);
-}
+        return response()->json(['error' => 'Action non valide.'], 400);
+    }
 
 
     public function store(Request $request)
@@ -109,8 +109,11 @@ class GameController extends Controller
 
         // Gestion des fichiers d'image de couverture
         if ($request->hasFile('cover_image')) {
-            $imagePath = $request->file('cover_image')->store('img/games/cover', 'public');
-            $game->cover_image = 'storage/' . $imagePath;
+            $image = $request->file('cover_image');
+            $imageName = time() . '_' . $image->getClientOriginalName();
+            $destinationPath = public_path('storage/img/games/cover');
+            $image->move($destinationPath, $imageName);
+            $game->cover_image = 'storage/img/games/cover/' . $imageName;
         }
 
         $game->save();
@@ -121,6 +124,7 @@ class GameController extends Controller
 
         return response()->json(['message' => 'Jeu créé avec succès!', 'game' => $game], 201);
     }
+
 
 
     public function update(Request $request, $id)
@@ -155,14 +159,17 @@ class GameController extends Controller
 
         if ($request->hasFile('cover_image')) {
             // Supprimer l'ancienne image de couverture si elle existe
-            $oldImagePath = str_replace('storage/', '', $game->cover_image);
-            if ($game->cover_image && Storage::disk('public')->exists($oldImagePath)) {
-                Storage::disk('public')->delete($oldImagePath);
+            $oldImagePath = public_path($game->cover_image);
+            if ($game->cover_image && file_exists($oldImagePath)) {
+                unlink($oldImagePath);
             }
 
             // Enregistrer la nouvelle image de couverture
-            $imagePath = $request->file('cover_image')->store('img/games/cover', 'public');
-            $game->cover_image = 'storage/' . $imagePath;
+            $image = $request->file('cover_image');
+            $imageName = time() . '_' . $image->getClientOriginalName();
+            $destinationPath = public_path('storage/img/games/cover');
+            $image->move($destinationPath, $imageName);
+            $game->cover_image = 'storage/img/games/cover/' . $imageName;
         }
 
         $game->save();
@@ -173,6 +180,27 @@ class GameController extends Controller
 
         return response()->json(['game' => $game, 'message' => 'Jeu mis à jour avec succès.'], 200);
     }
+
+    public function delete($id)
+    {
+        $game = Game::find($id);
+
+        if (!$game) {
+            return response()->json(['message' => 'Jeu non trouvé.'], 404);
+        }
+
+        // Supprimer l'image de couverture si elle existe
+        if ($game->cover_image && file_exists(public_path($game->cover_image))) {
+            unlink(public_path($game->cover_image));
+        }
+
+        // Supprimer le jeu
+        $game->delete();
+
+        return response()->json(['message' => 'Jeu supprimé avec succès.'], 200);
+    }
+
+
 
 
 

@@ -16,7 +16,7 @@ class UserController extends Controller
     public function userProfile($id)
     {
         try {
-            $user = User::with(['games', 'friends', 'platforms', 'posts' => function($query) {
+            $user = User::with(['games', 'friends', 'platforms', 'posts.user' => function($query) {
                 $query->orderBy('created_at', 'desc');
             }])->findOrFail($id);
     
@@ -61,7 +61,7 @@ class UserController extends Controller
                 'games', 
                 'friends', 
                 'platforms', 
-                'posts' => function($query) {
+                'posts.user' => function($query) {
                     $query->orderBy('created_at', 'desc');
                 },
                 'followers'
@@ -169,19 +169,26 @@ class UserController extends Controller
         $user->location = $request->input('location');
 
         if ($request->hasFile('avatar_url')) {
-            $avatarPath = $request->file('avatar_url')->store('img/users/profil', 'public');
-            $user->avatar_url = 'storage/' . $avatarPath;
+            $avatar = $request->file('avatar_url');
+            $avatarName = time() . '_' . $avatar->getClientOriginalName();
+            $avatarDestinationPath = public_path('storage/img/users/profil');
+            $avatar->move($avatarDestinationPath, $avatarName);
+            $user->avatar_url = 'storage/img/users/profil/' . $avatarName;
         }
 
         if ($request->hasFile('cover_url')) {
-            $coverPath = $request->file('cover_url')->store('img/users/cover', 'public');
-            $user->cover_url = 'storage/' . $coverPath;
+            $cover = $request->file('cover_url');
+            $coverName = time() . '_' . $cover->getClientOriginalName();
+            $coverDestinationPath = public_path('storage/img/users/cover');
+            $cover->move($coverDestinationPath, $coverName);
+            $user->cover_url = 'storage/img/users/cover/' . $coverName;
         }
 
         $user->save();
 
         return response()->json(['user' => $user, 'message' => 'Utilisateur créé avec succès.'], 201);
     }
+
 
     public function update(Request $request, $id)
     {
@@ -215,33 +222,41 @@ class UserController extends Controller
         $user->location = $request->input('location');
 
         if ($request->hasFile('avatar_url')) {
-            // Exception for default avatar
-            $oldAvatarPath = str_replace('storage/', '', $user->avatar_url);
-            if ($user->avatar_url && Storage::disk('public')->exists($oldAvatarPath) && !in_array($oldAvatarPath, ['img/users/defaultUser.webp'])) {
-                Storage::disk('public')->delete($oldAvatarPath);
+            // Suppression de l'ancienne image d'avatar si elle existe et n'est pas par défaut
+            if ($user->avatar_url && $user->avatar_url !== 'storage/img/users/defaultUser.webp') {
+                $oldAvatarPath = public_path($user->avatar_url);
+                if (file_exists($oldAvatarPath)) {
+                    unlink($oldAvatarPath);
+                }
             }
-            $avatarPath = $request->file('avatar_url')->store('img/users/profil', 'public');
-            $user->avatar_url = 'storage/' . $avatarPath;
+            // Enregistrement de la nouvelle image d'avatar
+            $avatar = $request->file('avatar_url');
+            $avatarName = time() . '_' . $avatar->getClientOriginalName();
+            $avatarDestinationPath = public_path('storage/img/users/profil');
+            $avatar->move($avatarDestinationPath, $avatarName);
+            $user->avatar_url = 'storage/img/users/profil/' . $avatarName;
         }
 
         if ($request->hasFile('cover_url')) {
-            // Exception for default cover
-            $oldCoverPath = str_replace('storage/', '', $user->cover_url);
-            if ($user->cover_url && Storage::disk('public')->exists($oldCoverPath) && !in_array($oldCoverPath, ['img/users/defaultCover.webp'])) {
-                Storage::disk('public')->delete($oldCoverPath);
+            // Suppression de l'ancienne image de couverture si elle existe et n'est pas par défaut
+            if ($user->cover_url && $user->cover_url !== 'storage/img/users/defaultCover.webp') {
+                $oldCoverPath = public_path($user->cover_url);
+                if (file_exists($oldCoverPath)) {
+                    unlink($oldCoverPath);
+                }
             }
-            $coverPath = $request->file('cover_url')->store('img/users/cover', 'public');
-            $user->cover_url = 'storage/' . $coverPath;
+            // Enregistrement de la nouvelle image de couverture
+            $cover = $request->file('cover_url');
+            $coverName = time() . '_' . $cover->getClientOriginalName();
+            $coverDestinationPath = public_path('storage/img/users/cover');
+            $cover->move($coverDestinationPath, $coverName);
+            $user->cover_url = 'storage/img/users/cover/' . $coverName;
         }
 
         $user->save();
 
         return response()->json(['user' => $user, 'message' => 'Utilisateur mis à jour avec succès.'], 200);
     }
-
-
-
-
 
 
     public function deleteUser(Request $request, $userId) 
@@ -251,8 +266,19 @@ class UserController extends Controller
             return response()->json(['message' => 'Utilisateur non trouvé.'], 404);
         }
 
+        // Supprimer l'avatar si ce n'est pas l'avatar par défaut
+        if ($user->avatar_url && file_exists(public_path($user->avatar_url)) && !in_array($user->avatar_url, ['storage/img/users/defaultUser.webp'])) {
+            unlink(public_path($user->avatar_url));
+        }
+
+        // Supprimer la couverture si ce n'est pas la couverture par défaut
+        if ($user->cover_url && file_exists(public_path($user->cover_url)) && !in_array($user->cover_url, ['storage/img/users/defaultCover.webp'])) {
+            unlink(public_path($user->cover_url));
+        }
+
         $user->delete();
         return response()->json(['message' => 'Utilisateur supprimé avec succès.'], 200);
     }
+
     
 }
