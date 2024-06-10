@@ -251,6 +251,8 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'surname' => 'required|string|max:255',
             'username' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
@@ -266,6 +268,8 @@ class UserController extends Controller
         }
 
         $user = new User();
+        $user->name = $request->input('name');
+        $user->surname = $request->input('surname');
         $user->username = $request->input('username');
         $user->email = $request->input('email');
         $user->password = bcrypt($request->input('password'));
@@ -279,6 +283,8 @@ class UserController extends Controller
             $avatarDestinationPath = public_path('storage/img/users/profil');
             $avatar->move($avatarDestinationPath, $avatarName);
             $user->avatar_url = 'storage/img/users/profil/' . $avatarName;
+        } else {
+            $user->avatar_url = 'storage/img/users/defaultUser.webp';
         }
 
         if ($request->hasFile('cover_url')) {
@@ -287,6 +293,8 @@ class UserController extends Controller
             $coverDestinationPath = public_path('storage/img/users/cover');
             $cover->move($coverDestinationPath, $coverName);
             $user->cover_url = 'storage/img/users/cover/' . $coverName;
+        } else {
+            $user->cover_url = 'storage/img/users/defaultCover.webp';
         }
 
         $user->save();
@@ -295,12 +303,14 @@ class UserController extends Controller
     }
 
 
+
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'surname' => 'required|string|max:255',
             'username' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $id,
-            'password' => 'nullable|string|min:8',
             'biography' => 'nullable|string',
             'birthday' => 'required|date',
             'location' => 'nullable|string|max:255',
@@ -317,11 +327,10 @@ class UserController extends Controller
             return response()->json(['message' => 'Utilisateur non trouvé.'], 404);
         }
 
+        $user->name = $request->input('name');
+        $user->surname = $request->input('surname');
         $user->username = $request->input('username');
         $user->email = $request->input('email');
-        if ($request->input('password')) {
-            $user->password = bcrypt($request->input('password'));
-        }
         $user->biography = $request->input('biography');
         $user->birthday = $request->input('birthday');
         $user->location = $request->input('location');
@@ -362,6 +371,8 @@ class UserController extends Controller
 
         return response()->json(['user' => $user, 'message' => 'Utilisateur mis à jour avec succès.'], 200);
     }
+
+
 
 
     public function deleteUser(Request $request, $userId) 
