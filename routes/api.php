@@ -47,6 +47,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user/groups', [UserController::class, 'userGroups']);
     Route::post('/user/update/profil_img', [UserController::class, 'updateProfilImg']);
     Route::post('/user/update/cover_img', [UserController::class, 'updateCoverImg']);
+    Route::post('/users/update-profile', [UserController::class, 'updateProfile']);
 
     // ------------------- ROUTES FOR GAMES ------------------- //
     Route::get('/games/index', [GameController::class, 'index']);

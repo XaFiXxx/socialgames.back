@@ -180,6 +180,45 @@ class UserController extends Controller
         return response()->json(['cover_url' => $user->cover_url, 'message' => 'Photo de couverture mise à jour avec succès.'], 200);
     }
 
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+
+        // Validation des données entrantes
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|integer|exists:users,id',
+            'name' => 'required|string|max:255',
+            'surname' => 'required|string|max:255',
+            'username' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $request->id,
+            'biography' => 'nullable|string',
+            'birthday' => 'nullable|date',
+            'location' => 'nullable|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+
+        // Vérifier si l'utilisateur connecté est bien celui qui fait la demande
+        if ($user->id != $request->id) {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
+
+        // Mettre à jour les informations de l'utilisateur
+        $user->name = $request->input('name');
+        $user->surname = $request->input('surname');
+        $user->username = $request->input('username');
+        $user->email = $request->input('email');
+        $user->biography = $request->input('biography');
+        $user->birthday = $request->input('birthday');
+        $user->location = $request->input('location');
+
+        $user->save();
+
+        return response()->json(['message' => 'Profil mis à jour avec succès', 'user' => $user], 200);
+    }
+
 
 
     //------------------- ROUTES FOR DASHBOARD ------------------- //
