@@ -16,7 +16,7 @@ class AuthController extends Controller
     {
         // Validation des données entrantes
         $validator = Validator::make($request->all(), [
-            'username' => 'required|string|max:255',
+            'username' => 'required|string|max:255|unique:users',
             'name' => 'required|string|max:255',
             'surname' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
@@ -58,23 +58,29 @@ class AuthController extends Controller
     }
 
 
-
-
-
     public function login(Request $request)
     {
+        // Validation des données entrantes
         $credentials = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
+            'identifier' => 'required|string',
+            'password' => 'required|string',
         ]);
 
-        if (!Auth::attempt($credentials)) {
+        $identifier = $request->input('identifier');
+        $password = $request->input('password');
+
+        // Vérifiez si l'utilisateur existe avec l'e-mail ou le nom d'utilisateur
+        $user = User::where('email', $identifier)
+                    ->orWhere('username', $identifier)
+                    ->first();
+
+        if (!$user || !Hash::check($password, $user->password)) {
             return response()->json([
                 'message' => 'Les informations d\'identification fournies sont incorrectes.'
             ], 401);
         }
 
-        $user = User::where('email', $request->email)->firstOrFail();
+        // Génération du token
         $token = $user->createToken('authToken')->plainTextToken;
 
         return response()->json([
@@ -83,6 +89,7 @@ class AuthController extends Controller
             'user' => new UserResource($user), // Utiliser la ressource ici
         ]);
     }
+
 
 
 
