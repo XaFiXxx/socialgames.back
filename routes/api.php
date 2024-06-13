@@ -31,12 +31,8 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/dashboard/login', [AuthController::class, 'dashboardLogin']);
 
 // Routes API nécessitant une authentification
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/user', function (Request $request) {
-        return $request->user();
-    });
-
-    // ------------------- ROUTES FOR HOME ------------------- //
+Route::middleware('auth:sanctum', 'check.token.expiration')->group(function () {
+        // ------------------- ROUTES FOR HOME ------------------- //
     Route::get('/home', [HomeController::class, 'home']);
 
     // ------------------- ROUTES FOR USERS ------------------- //

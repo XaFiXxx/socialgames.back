@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -8,7 +7,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\UserResource;
-
+use Carbon\Carbon;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends Controller
 {
@@ -57,7 +57,6 @@ class AuthController extends Controller
         return response()->json(['message' => 'Utilisateur créé avec succès', 'user' => $user]);
     }
 
-
     public function login(Request $request)
     {
         // Validation des données entrantes
@@ -80,51 +79,71 @@ class AuthController extends Controller
             ], 401);
         }
 
+        // Définir l'expiration des tokens à 2 minutes pour le test
+        $expiration = Carbon::now()->addMinutes(1);
+
         // Génération du token
-        $token = $user->createToken('authToken')->plainTextToken;
+        $tokenResult = $user->createToken('authToken');
+        $token = $tokenResult->plainTextToken;
+
+        // Mettre à jour l'expiration du token
+        $accessToken = $tokenResult->accessToken;
+        $accessToken->expires_at = $expiration;
+        $accessToken->save();
 
         return response()->json([
             'message' => 'Connexion réussie',
             'token' => $token,
-            'user' => new UserResource($user), // Utiliser la ressource ici
+            'user' => new UserResource($user),
         ]);
     }
 
-
-
-
-    public function dashboardLogin(Request $request)
-{
-    // Valider les données d'entrée
-    $validatedData = $request->validate([
-        'email' => 'required|email',
-        'password' => 'required'
-    ]);
-
-    // Tenter de se connecter avec les identifiants fournis
-    if (Auth::attempt($validatedData)) {
-        $user = Auth::user();
-
-        // Vérifier si l'utilisateur est administrateur
-        if ($user->is_admin) {
-            $token = $user->createToken('admin_access')->plainTextToken;
-
-            // Réponse en cas de succès
-            return response()->json([
-                'message' => 'Success',
-                'token' => $token,
-                'user' => $user
-            ]);
-        } else {
-            // Réponse en cas d'échec due au manque de droits administrateur
-            return response()->json(['message' => 'Access denied. Only administrators can log in.'], 403);
-        }
+    public function logout(Request $request)
+    {
+        Auth::guard('web')->logout();
+        return response()->json(['message' => 'Successfully logged out']);
     }
 
-    // Réponse en cas d'échec de connexion
-    return response()->json(['message' => 'Invalid credentials'], 401);
-}
+    public function dashboardLogin(Request $request)
+    {
+        // Valider les données d'entrée
+        $validatedData = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required'
+        ]);
 
+        // Tenter de se connecter avec les identifiants fournis
+        if (Auth::attempt($validatedData)) {
+            $user = Auth::user();
 
+            // Vérifier si l'utilisateur est administrateur
+            if ($user->is_admin) {
+                $tokenResult = $user->createToken('admin_access');
+                $token = $tokenResult->plainTextToken;
 
+                // Définir l'expiration des tokens à 2 minutes pour le test
+                $expiration = Carbon::now()->addMinutes(2);
+
+                // Mettre à jour l'expiration du token
+                $accessToken = $tokenResult->accessToken;
+                $accessToken->expires_at = $expiration;
+                $accessToken->save();
+
+                return response()->json([
+                    'message' => 'Success',
+                    'token' => $token,
+                    'user' => $user
+                ]);
+            } else {
+                return response()->json(['message' => 'Access denied. Only administrators can log in.'], 403);
+            }
+        }
+
+        return response()->json(['message' => 'Invalid credentials'], 401);
+    }
+
+    public function user(Request $request)
+    {
+        return response()->json($request->user());
+    }
 }

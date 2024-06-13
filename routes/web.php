@@ -1,6 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
+
+Route::get('/sanctum/csrf-cookie', function (Request $request) {
+    return response()->json(['message' => 'CSRF token set']);
+});
 
 /*
 |--------------------------------------------------------------------------
