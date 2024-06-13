@@ -76,6 +76,9 @@ Route::middleware('auth:sanctum', 'check.token.expiration')->group(function () {
     Route::get('/profil/{id}/{username}', [UserController::class, 'showUserById']);
     Route::get('/game/{id}/{name}', [GameController::class, 'show']);
 
+    // ------------------- ROUTES FOR LOGOUT ------------------- //
+    Route::post('/logout', [AuthController::class, 'logout']);
+
     // ------------------- ROUTES FOR DASHBOARD ------------------- //
     Route::middleware('is_admin')->group(function () {
 

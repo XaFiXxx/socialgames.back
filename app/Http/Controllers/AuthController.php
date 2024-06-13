@@ -100,9 +100,20 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        // Trouver le token actuel
+        $token = $request->user()->currentAccessToken();
+    
+        if ($token) {
+            // Révoquer le token actuel
+            $token->delete();
+        }
+    
+        // Déconnecter l'utilisateur (optionnel, car révoquer le token suffit généralement)
         Auth::guard('web')->logout();
+    
         return response()->json(['message' => 'Successfully logged out']);
     }
+
 
     public function dashboardLogin(Request $request)
     {
@@ -122,7 +133,7 @@ class AuthController extends Controller
                 $token = $tokenResult->plainTextToken;
 
                 // Définir l'expiration des tokens à 2 minutes pour le test
-                $expiration = Carbon::now()->addMinutes(2);
+                $expiration = Carbon::now()->addMinutes(1);
 
                 // Mettre à jour l'expiration du token
                 $accessToken = $tokenResult->accessToken;
