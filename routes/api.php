@@ -14,6 +14,7 @@ use App\Http\Controllers\GroupController;
 use App\Http\Controllers\GameReviewController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\GenreController;
+use App\Http\Controllers\FriendController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,7 +33,13 @@ Route::post('/dashboard/login', [AuthController::class, 'dashboardLogin']);
 
 // Routes API nécessitant une authentification
 Route::middleware('auth:sanctum', 'check.token.expiration')->group(function () {
-        // ------------------- ROUTES FOR HOME ------------------- //
+
+    Route::post('/broadcasting/auth', function () {
+        return Broadcast::auth(request());
+    });
+
+    // Route::get('/user', [AuthController::class, 'user']);
+    // ------------------- ROUTES FOR HOME ------------------- //
     Route::get('/home', [HomeController::class, 'home']);
 
     // ------------------- ROUTES FOR USERS ------------------- //
@@ -75,6 +82,12 @@ Route::middleware('auth:sanctum', 'check.token.expiration')->group(function () {
     Route::get('/search/suggestions', [SearchController::class, 'getSuggestions']);
     Route::get('/profil/{id}/{username}', [UserController::class, 'showUserById']);
     Route::get('/game/{id}/{name}', [GameController::class, 'show']);
+
+    // ------------------- ROUTES FOR FRIENDS ------------------- //
+    Route::post('/user/add-friend', [FriendController::class, 'addFriend']);
+    Route::post('/respond-friend-request', [FriendController::class, 'respondToFriendRequest']);
+    Route::get('/friends', [FriendController::class, 'listFriends']);
+    Route::get('/friend-requests', [FriendController::class, 'listFriendRequests']);
 
     // ------------------- ROUTES FOR LOGOUT ------------------- //
     Route::post('/logout', [AuthController::class, 'logout']);

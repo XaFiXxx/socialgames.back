@@ -11,7 +11,7 @@ return [
 
     'guard' => ['web'],
 
-    'expiration' => 5,
+    'expiration' => 60, // 
 
     'token_prefix' => env('SANCTUM_TOKEN_PREFIX', ''),
 

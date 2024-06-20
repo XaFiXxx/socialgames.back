@@ -79,8 +79,8 @@ class AuthController extends Controller
             ], 401);
         }
 
-        // Définir l'expiration des tokens à 2 minutes pour le test
-        $expiration = Carbon::now()->addMinutes(1);
+        // Définir l'expiration des tokens à 1 minutes pour le test
+        $expiration = Carbon::now()->addMinutes(60);
 
         // Génération du token
         $tokenResult = $user->createToken('authToken');
@@ -100,18 +100,23 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        // Trouver le token actuel
-        $token = $request->user()->currentAccessToken();
-    
-        if ($token) {
-            // Révoquer le token actuel
-            $token->delete();
+        // Vérifiez si l'utilisateur est authentifié
+        if ($user = $request->user()) {
+            // Trouver le token actuel
+            $token = $user->currentAccessToken();
+            
+            if ($token) {
+                // Révoquer le token actuel
+                $token->delete();
+            }
+
+            // Déconnecter l'utilisateur (optionnel, car révoquer le token suffit généralement)
+            Auth::guard('web')->logout();
+
+            return response()->json(['message' => 'Successfully logged out']);
         }
-    
-        // Déconnecter l'utilisateur (optionnel, car révoquer le token suffit généralement)
-        Auth::guard('web')->logout();
-    
-        return response()->json(['message' => 'Successfully logged out']);
+
+        return response()->json(['message' => 'User not authenticated'], 401);
     }
 
 
@@ -151,10 +156,5 @@ class AuthController extends Controller
         }
 
         return response()->json(['message' => 'Invalid credentials'], 401);
-    }
-
-    public function user(Request $request)
-    {
-        return response()->json($request->user());
     }
 }

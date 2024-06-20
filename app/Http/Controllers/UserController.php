@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\Follow;
 use Illuminate\Http\Request;
 use App\Models\Group;
+use App\Models\Friend;
 
 class UserController extends Controller
 {
@@ -52,33 +53,55 @@ class UserController extends Controller
 
 
     public function showUserById($id)
-    {
-        $currentUserId = auth()->user()->id; // Correction des parenthèses
-        \Log::info('Current User ID: ' . $currentUserId);
-    
-        try {
-            $user = User::with([
-                'games', 
-                'friends', 
-                'platforms', 
-                'posts.user' => function($query) {
-                    $query->orderBy('created_at', 'desc');
-                },
-                'followers'
-            ])->findOrFail($id);
-    
-            $isFollowing = Follow::where('follower_id', $currentUserId)
-                     ->where('followed_id', $id)
-                     ->exists();
+{
+    $currentUserId = auth()->user()->id;
+    \Log::info('Current User ID: ' . $currentUserId);
 
-            $user->isFollowing = $isFollowing; // Assurez-vous que cette ligne est correcte
-    
-            return response()->json($user); // Utilisez un tableau pour makeHidden
-        } catch (\Exception $e) {
-            \Log::error("Failed to find user: " . $e->getMessage());
-            return response()->json(['error' => 'User not found'], 404);
-        }
+    try {
+        $user = User::with([
+            'games', 
+            'friends', 
+            'platforms', 
+            'posts.user' => function($query) {
+                $query->orderBy('created_at', 'desc');
+            },
+            'followers'
+        ])->findOrFail($id);
+
+        // Vérifiez si l'utilisateur actuel suit l'utilisateur consulté
+        $isFollowing = Follow::where('follower_id', $currentUserId)
+                 ->where('followed_id', $id)
+                 ->exists();
+
+        // Vérifiez si une demande d'ami a été envoyée par l'utilisateur actuel
+        $hasSentFriendRequest = Friend::where('user_id', $currentUserId)
+                             ->where('friend_id', $id)
+                             ->where('status', 'pending')
+                             ->exists();
+
+        // Vérifiez si les utilisateurs sont déjà amis
+        $isFriend = Friend::where(function ($query) use ($currentUserId, $id) {
+                        $query->where('user_id', $currentUserId)
+                              ->where('friend_id', $id)
+                              ->where('status', 'accepted');
+                    })->orWhere(function ($query) use ($currentUserId, $id) {
+                        $query->where('user_id', $id)
+                              ->where('friend_id', $currentUserId)
+                              ->where('status', 'accepted');
+                    })->exists();
+
+        // Ajoutez ces informations à l'utilisateur
+        $user->isFollowing = $isFollowing;
+        $user->hasSentFriendRequest = $hasSentFriendRequest;
+        $user->isFriend = $isFriend;
+
+        return response()->json($user);
+    } catch (\Exception $e) {
+        \Log::error("Failed to find user: " . $e->getMessage());
+        return response()->json(['error' => 'User not found'], 404);
     }
+}
+
 
 
     public function toggleFollowUser(Request $request, $id) {
