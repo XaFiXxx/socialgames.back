@@ -35,6 +35,8 @@ Route::post('/dashboard/login', [AuthController::class, 'dashboardLogin']);
 Route::middleware('auth:sanctum', 'check.token.expiration')->group(function () {
 
     Route::post('/broadcasting/auth', function () {
+        \Log::info('Authorization Header:', [$request->header('Authorization')]);
+        \Log::info('CSRF Token:', [$request->header('X-CSRF-TOKEN')]);
         return Broadcast::auth(request());
     });
 
