@@ -17,17 +17,35 @@ class UserController extends Controller
     public function userProfile($id)
     {
         try {
-            $user = User::with(['games', 'friends', 'platforms', 'posts.user' => function($query) {
-                $query->orderBy('created_at', 'desc');
-            }])->findOrFail($id);
-    
+            $user = User::with([
+                'games', 
+                'friendsInitiated', 
+                'friendsReceived', 
+                'platforms', 
+                'posts.user' => function($query) {
+                    $query->orderBy('created_at', 'desc');
+                }
+            ])->findOrFail($id);
+
+            // Combine les amis initiés et reçus
+            $allFriends = $user->friendsInitiated->merge($user->friendsReceived);
+
+            // Convertir les données utilisateur en tableau
             $userData = $user->toArray();
-            unset($userData['is_admin']);  // Supprimez les clés sensibles
+
+            // Ajouter les amis combinés aux données utilisateur
+            $userData['friends'] = $allFriends;
+
+            // Supprimez les clés sensibles
+            unset($userData['is_admin']);
+
             return response()->json($userData);
         } catch (\Exception $e) {
+            \Log::error("Failed to find user: " . $e->getMessage());
             return response()->json(['error' => 'User not found'], 404);
         }
     }
+
 
     public function userPlatforms()
     {
@@ -53,54 +71,66 @@ class UserController extends Controller
 
 
     public function showUserById($id)
-{
-    $currentUserId = auth()->user()->id;
-    \Log::info('Current User ID: ' . $currentUserId);
+    {
+        $currentUserId = auth()->user()->id;
 
-    try {
-        $user = User::with([
-            'games', 
-            'friends', 
-            'platforms', 
-            'posts.user' => function($query) {
-                $query->orderBy('created_at', 'desc');
-            },
-            'followers'
-        ])->findOrFail($id);
+        try {
+            $user = User::with([
+                'games',
+                'platforms',
+                'posts.user' => function($query) {
+                    $query->orderBy('created_at', 'desc');
+                },
+                'followers'
+            ])->findOrFail($id);
 
-        // Vérifiez si l'utilisateur actuel suit l'utilisateur consulté
-        $isFollowing = Follow::where('follower_id', $currentUserId)
-                 ->where('followed_id', $id)
-                 ->exists();
+            // Récupérer les amis initiés et reçus
+            $friendsInitiated = Friend::where('user_id', $id)
+                ->where('status', 'accepted')
+                ->pluck('friend_id');
 
-        // Vérifiez si une demande d'ami a été envoyée par l'utilisateur actuel
-        $hasSentFriendRequest = Friend::where('user_id', $currentUserId)
-                             ->where('friend_id', $id)
-                             ->where('status', 'pending')
-                             ->exists();
+            $friendsReceived = Friend::where('friend_id', $id)
+                ->where('status', 'accepted')
+                ->pluck('user_id');
 
-        // Vérifiez si les utilisateurs sont déjà amis
-        $isFriend = Friend::where(function ($query) use ($currentUserId, $id) {
-                        $query->where('user_id', $currentUserId)
-                              ->where('friend_id', $id)
-                              ->where('status', 'accepted');
-                    })->orWhere(function ($query) use ($currentUserId, $id) {
-                        $query->where('user_id', $id)
-                              ->where('friend_id', $currentUserId)
-                              ->where('status', 'accepted');
-                    })->exists();
+            $friendIds = $friendsInitiated->merge($friendsReceived);
 
-        // Ajoutez ces informations à l'utilisateur
-        $user->isFollowing = $isFollowing;
-        $user->hasSentFriendRequest = $hasSentFriendRequest;
-        $user->isFriend = $isFriend;
+            $friends = User::whereIn('id', $friendIds)->get();
 
-        return response()->json($user);
-    } catch (\Exception $e) {
-        \Log::error("Failed to find user: " . $e->getMessage());
-        return response()->json(['error' => 'User not found'], 404);
+            // Vérifiez si l'utilisateur actuel suit l'utilisateur consulté
+            $isFollowing = Follow::where('follower_id', $currentUserId)
+                ->where('followed_id', $id)
+                ->exists();
+
+            // Vérifiez si une demande d'ami a été envoyée par l'utilisateur actuel
+            $hasSentFriendRequest = Friend::where('user_id', $currentUserId)
+                ->where('friend_id', $id)
+                ->where('status', 'pending')
+                ->exists();
+
+            // Vérifiez si les utilisateurs sont déjà amis
+            $isFriend = Friend::where(function ($query) use ($currentUserId, $id) {
+                $query->where('user_id', $currentUserId)
+                    ->where('friend_id', $id)
+                    ->where('status', 'accepted');
+            })->orWhere(function ($query) use ($currentUserId, $id) {
+                $query->where('user_id', $id)
+                    ->where('friend_id', $currentUserId)
+                    ->where('status', 'accepted');
+            })->exists();
+
+            // Ajoutez ces informations à l'utilisateur
+            $user->isFollowing = $isFollowing;
+            $user->hasSentFriendRequest = $hasSentFriendRequest;
+            $user->isFriend = $isFriend;
+            $user->friends = $friends;
+
+            return response()->json($user);
+        } catch (\Exception $e) {
+            Log::error("Failed to find user: " . $e->getMessage());
+            return response()->json(['error' => 'User not found'], 404);
+        }
     }
-}
 
 
 

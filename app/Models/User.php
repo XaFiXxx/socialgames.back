@@ -2,62 +2,35 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
-        'username',
-        'email',
-        'name',
-        'surname',
-        'password',
-        'birthday',
-        'avatar_url',
-        'cover_url',
-        'biography',
-        'location',
-        'is_admin',
+        'username', 'email', 'name', 'surname', 'password', 'birthday', 'avatar_url',
+        'cover_url', 'biography', 'location', 'is_admin',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
-        'password',
-        'remember_token',
+        'password', 'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
 
-    // Jeux avec reviews et wishlist
     public function gameReviews()
     {
         return $this->hasMany(GameReview::class);
     }
 
-    // Jeux directement, en utilisant la relation à travers game_reviews
     public function games()
     {
         return $this->belongsToMany(Game::class, 'game_reviews')
@@ -65,16 +38,21 @@ class User extends Authenticatable
                     ->withTimestamps();
     }
 
-    // Posts de l'utilisateur
     public function posts()
     {
         return $this->hasMany(Post::class);
     }
 
-    // Amis - supposant que la table friends relie les utilisateurs à d'autres utilisateurs
-    public function friends()
+    public function friendsInitiated(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'friends', 'user_id', 'friend_id')
+                    ->withPivot('status')
+                    ->wherePivot('status', 'accepted');
+    }
+
+    public function friendsReceived(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'friends', 'friend_id', 'user_id')
                     ->withPivot('status')
                     ->wherePivot('status', 'accepted');
     }
@@ -86,18 +64,18 @@ class User extends Authenticatable
                     ->wherePivot('status', 'pending');
     }
 
-
-    // Plateformes via game_platform
     public function platforms()
     {
         return $this->belongsToMany(Platform::class, 'user_platform');
     }
 
-    public function following() {
+    public function following()
+    {
         return $this->belongsToMany(User::class, 'follows', 'follower_id', 'followed_id');
     }
 
-    public function followers() {
+    public function followers()
+    {
         return $this->belongsToMany(User::class, 'follows', 'followed_id', 'follower_id');
     }
 
@@ -120,5 +98,4 @@ class User extends Authenticatable
     {
         return $this->hasMany(Comment::class);
     }
-
 }

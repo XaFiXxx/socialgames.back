@@ -34,10 +34,10 @@ Route::post('/dashboard/login', [AuthController::class, 'dashboardLogin']);
 // Routes API nécessitant une authentification
 Route::middleware('auth:sanctum', 'check.token.expiration')->group(function () {
 
-    Route::post('/broadcasting/auth', function () {
+    Route::post('/broadcasting/auth', function (Request $request) {
         \Log::info('Authorization Header:', [$request->header('Authorization')]);
         \Log::info('CSRF Token:', [$request->header('X-CSRF-TOKEN')]);
-        return Broadcast::auth(request());
+        return Broadcast::auth($request);
     });
 
     // Route::get('/user', [AuthController::class, 'user']);
