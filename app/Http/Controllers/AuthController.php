@@ -99,25 +99,32 @@ class AuthController extends Controller
     }
 
     public function logout(Request $request)
-    {
-        // Vérifiez si l'utilisateur est authentifié
-        if ($user = $request->user()) {
-            // Trouver le token actuel
-            $token = $user->currentAccessToken();
-            
-            if ($token) {
-                // Révoquer le token actuel
-                $token->delete();
-            }
-
-            // Déconnecter l'utilisateur (optionnel, car révoquer le token suffit généralement)
-            Auth::guard('web')->logout();
-
-            return response()->json(['message' => 'Successfully logged out']);
+{
+    // Vérifiez si l'utilisateur est authentifié
+    if ($user = $request->user()) {
+        // Trouver le token actuel
+        $token = $user->currentAccessToken();
+        
+        if ($token) {
+            // Révoquer le token actuel
+            $token->delete();
         }
 
-        return response()->json(['message' => 'User not authenticated'], 401);
+        // Déconnecter l'utilisateur (optionnel, car révoquer le token suffit généralement)
+        Auth::guard('web')->logout();
+
+        // Invalider la session
+        $request->session()->invalidate();
+
+        // Régénérer le token CSRF pour éviter les attaques CSRF sur les sessions expirées
+        $request->session()->regenerateToken();
+
+        return response()->json(['message' => 'Successfully logged out']);
     }
+
+    return response()->json(['message' => 'User not authenticated'], 401);
+}
+
 
 
     public function dashboardLogin(Request $request)
